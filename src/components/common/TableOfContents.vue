@@ -1,41 +1,40 @@
+<!--
+  文件用途说明：
+  TableOfContents.vue 使用 Tailwind CSS 构建 PPT 风格目录组件，
+  从路由配置自动生成目录列表，支持两列布局、页码显示以及点击跳转。
+-->
 <template>
   <div 
-    class="table-of-contents" 
+    class="w-full h-full flex flex-col text-primary bg-transparent p-8 box-border"
     :style="containerStyles"
   >
-    
     <!-- 目录列表 -->
     <div 
-      class="toc-list" 
-      :class="{ 'two-column': twoColumn && displayItems.length > columnBreakpoint }"
-      :style="listStyle"
+      class="min-h-0 h-full flex-1"
+      :class="listLayoutClass"
     >
       <div 
         v-for="(item, index) in displayItems" 
         :key="item.id"
-        class="toc-item"
-        :class="{
-          'toc-item--clickable': clickable
-        }"
-        :style="itemStyle"
+        class="relative m-0 flex items-center flex-1"
+        :class="[itemPaddingClass, clickable ? 'group cursor-pointer transition-all duration-300 ease-in-out hover:translate-x-1' : '']"
         @click="handleItemClick(item)"
       >
-        <div class="toc-item-content" :style="contentFontStyle">
+        <div class="flex items-center transition-all duration-300 font-body w-full" :class="[contentGapClass, clickable ? 'group-hover:text-primary' : '']" :style="contentFontStyle">
           <!-- 序号 -->
-          <span class="toc-number" :style="numberStyle">{{ formatNumber(index + 1) }}</span>
+          <span class="inline-flex items-center justify-end font-bold shrink-0 text-right" :style="numberStyle">{{ formatNumber(index + 1) }}</span>
           
           <!-- 标题 -->
-          <span class="toc-text">{{ item.title }}</span>
+          <span class="break-words">{{ item.title }}</span>
           
-          <!-- 连接线（点线） -->
-          <div v-if="showDots" class="toc-dots"></div>
+          <!-- 连接线（虚线） -->
+          <div v-if="showDots" class="flex-1 mx-2 h-px border-t border-dotted border-zinc-500 opacity-80"></div>
           
           <!-- 页码 -->
-          <span v-if="showPageNumbers" class="toc-page" :style="pageFontStyle">
+          <span v-if="showPageNumbers" class="inline-flex items-center justify-center px-2 py-1 rounded shrink-0 text-secondary font-medium min-w-[2rem] text-center" :style="pageFontStyle">
             {{ getPageNumber(item, index) }}
           </span>
         </div>
-
       </div>
     </div>
   </div>
@@ -235,42 +234,37 @@ const containerStyles = computed((): CSSProperties => {
 })
 
 /**
- * 列表样式（用于均匀分布）
+ * 计算列表布局的 Tailwind 类（单列/双列）
+ * 当 twoColumn 为真且项目数量超过分割点时，使用双列网格布局，否则使用单列 Flex 布局。
  */
-const listStyle = computed((): CSSProperties => {
-  // 检查是否应该使用两列布局
-  const shouldUseTwoColumn = props.twoColumn && displayItems.value.length > props.columnBreakpoint
-  
-  if (shouldUseTwoColumn) {
-    // 两列布局：使用 Grid
-    return {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: '0 2rem', // 水平间距
-      height: '100%',
-      flex: '1'
-    }
-  } else {
-    // 单列布局：使用 Flex
-    return {
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      height: '100%',
-      flex: '1'
-    }
-  }
+const listLayoutClass = computed(() => {
+  const useTwoColumn = props.twoColumn && displayItems.value.length > props.columnBreakpoint
+  return useTwoColumn ? 'grid grid-cols-2 gap-x-8' : 'flex flex-col justify-between'
 })
 
 /**
- * 目录项样式
+ * 紧凑模式等级：根据目录项数量动态调整间距
+ * 0：默认（<=15） 1：中度紧凑（>=16） 2：高度紧凑（>=21）
  */
-const itemStyle = computed((): CSSProperties => {
-  return {
-    flex: '1',
-    display: 'flex',
-    alignItems: 'center'
-  }
+const compactLevel = computed(() => {
+  const count = displayItems.value.length
+  if (count >= 21) return 2
+  if (count >= 16) return 1
+  return 0
+})
+
+/**
+ * 目录项的上下内边距类，根据紧凑等级调整
+ */
+const itemPaddingClass = computed(() => {
+  return compactLevel.value === 2 ? 'py-0.5' : compactLevel.value === 1 ? 'py-1' : 'py-2'
+})
+
+/**
+ * 内容区的左右间距（gap）类，根据紧凑等级调整
+ */
+const contentGapClass = computed(() => {
+  return compactLevel.value === 2 ? 'gap-2' : compactLevel.value === 1 ? 'gap-3' : 'gap-4'
 })
 
 
@@ -402,158 +396,3 @@ defineExpose({
   getItems: () => displayItems.value
 })
 </script>
-
-<style scoped>
-
-.table-of-contents {
-  @apply w-full h-full flex flex-col text-primary;
-  background-color: transparent;
-  padding: 2rem;
-  box-sizing: border-box;
-}
-
-
-/* 目录列表样式 */
-.toc-list {
-  @apply flex-1;
-  min-height: 0; /* 确保 flex 子元素可以收缩 */
-}
-
-/* 两列布局 */
-.toc-list.two-column {
-  @apply grid grid-cols-2 gap-x-8;
-}
-
-/* 目录项样式 */
-.toc-item {
-  @apply relative;
-  margin: 0;
-  padding: 0.5rem 0;
-}
-
-.toc-item--clickable {
-  @apply cursor-pointer transition-all duration-300 ease-in-out;
-}
-
-.toc-item--clickable:hover {
-  @apply transform translate-x-1;
-}
-
-.toc-item--clickable:hover .toc-item-content {
-  @apply text-primary;
-}
-
-.toc-item-content {
-  @apply flex items-center transition-all duration-300 font-body;
-  line-height: 1.4;
-  gap: 1rem;
-  width: 100%;
-}
-
-/* 序号样式 */
-.toc-number {
-  @apply inline-flex items-center justify-end font-bold flex-shrink-0;
-}
-
-
-
-/* 连接线样式（点线） */
-.toc-dots {
-  @apply flex-1 relative mx-2;
-  min-height: 1px;
-  overflow: visible;
-}
-
-.toc-dots::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  /* 使用稀疏的点线实现 */
-  background: repeating-linear-gradient(
-    to right,
-    rgb(107, 114, 128) 0,
-    rgb(107, 114, 128) 2px,
-    transparent 2px,
-    transparent 10px
-  );
-  transform: translateY(-50%);
-  opacity: 0.8;
-  z-index: 1;
-}
-
-/* 页码样式 */
-.toc-page {
-  @apply inline-flex items-center justify-center px-2 py-1 rounded flex-shrink-0 text-secondary font-medium;
-  min-width: 2rem;
-  text-align: center;
-}
-
-/* 响应式调整 */
-@media (max-width: 640px) {
-  .table-of-contents {
-    padding: 1rem;
-  }
-  
-  .toc-header {
-    @apply mb-4;
-  }
-  
-  .toc-list.two-column {
-    @apply grid-cols-1;
-  }
-  
-  .toc-item {
-    padding: 0.25rem 0;
-  }
-  
-  .toc-item-content {
-    gap: 0.5rem;
-  }
-  
-
-  
-  .toc-dots {
-    /* 移除错误的定位属性，保持原有的 margin 和 flex 布局 */
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-  }
-  
-  .toc-page {
-    min-width: 1.5rem;
-    padding: 0.125rem 0.25rem;
-    font-size: 0.75rem;
-  }
-}
-
-
-/* 确保内容不会溢出 */
-.table-of-contents * {
-  box-sizing: border-box;
-}
-
-/* 优化长文本显示 */
-.toc-text {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-/* 当目录项很多时的紧凑模式 */
-.toc-list:has(.toc-item:nth-child(16)) .toc-item {
-  padding: 0.25rem 0;
-}
-
-.toc-list:has(.toc-item:nth-child(16)) .toc-item-content {
-  gap: 0.75rem;
-}
-
-.toc-list:has(.toc-item:nth-child(21)) .toc-item {
-  padding: 0.125rem 0;
-}
-
-.toc-list:has(.toc-item:nth-child(21)) .toc-item-content {
-  gap: 0.5rem;
-}
-</style>

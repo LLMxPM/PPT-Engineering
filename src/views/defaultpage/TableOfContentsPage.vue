@@ -27,7 +27,7 @@
               :twoColumn="false"
               :columnBreakpoint="6"
               :autoFontSize="true"
-              :width=700
+              :width=900
               :height=700
             />
           </div>
@@ -113,7 +113,7 @@ defineOptions({
 /* 目录容器 */
 .toc-container {
   @apply h-full flex items-center justify-center;
-  padding: 80px 60px;
+  padding: 40px 60px;
 }
 
 </style>

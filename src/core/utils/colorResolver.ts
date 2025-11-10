@@ -14,8 +14,8 @@ const THEME_COLOR_MAP: Record<string, string> = {
   'text-invert': '--tw-color-text-invert',
   
   // 背景颜色
-  'bg-background': '--tw-color-bg-default',
-  'bg-background-invert': '--tw-color-bg-invert',
+  'bg-bg': '--tw-color-bg-default',
+  'bg-bg-invert': '--tw-color-bg-invert',
   
   // 边框颜色
   'border-border': '--tw-color-border-default',
@@ -40,6 +40,8 @@ const THEME_COLOR_MAP: Record<string, string> = {
   'invert': '--tw-color-text-invert',
   'background': '--tw-color-bg-default',
   'background-invert': '--tw-color-bg-invert',
+  'bg': '--tw-color-bg-default',
+  'bg-invert': '--tw-color-bg-invert',
   'border': '--tw-color-border-default',
   'border-subtle': '--tw-color-border-subtle',
   'link': '--tw-color-link-default',

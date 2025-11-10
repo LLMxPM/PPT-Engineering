@@ -5,6 +5,7 @@ import { readFileSync } from 'fs'
 import { parse } from 'yaml'
 import Inspector from 'unplugin-vue-dev-locator/vite'
 import traeBadgePlugin from 'vite-plugin-trae-solo-badge'
+import viteFileManager from './src/core/plugins/vite-file-manager'
 
 /**
  * 从app.config.yaml读取baseUrl配置
@@ -27,6 +28,7 @@ export default defineConfig({
   plugins: [
     vue(),
     Inspector(),
+    viteFileManager(), // 文件管理插件（仅开发环境）
   ],
   resolve: {
     alias: {

@@ -62,7 +62,7 @@
           </div>
 
           <!-- Draw.io图表卡片 -->
-          <div class="bg-background-subtle border border-border rounded-lg overflow-hidden hover:border-tertiary-300 transition-all duration-300 hover:shadow-lg">
+          <div  class="bg-background-subtle border border-border rounded-lg overflow-hidden hover:border-tertiary-300 transition-all duration-300 hover:shadow-lg">
             <div class="bg-accent3-100 p-6">
               <div class="flex items-center mb-3">
                 <Icon name="FileImage" :size="24" class="mr-2 text-accent3-700" />
@@ -87,6 +87,7 @@
             </div>
           </div>
         </div>
+
       </div>
     </template>
   </DefaultCoverPage>

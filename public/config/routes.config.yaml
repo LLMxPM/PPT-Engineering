@@ -1,163 +1,132 @@
-# 路由配置文件，配置驱动的路由定义，支持自动菜单生成
-# 当不需要分组时，children可以不配置
-# 示例格式:
-# - route: "路由名称"
-#   component: "组件路径"
-#   meta:
-#     title: "显示标题"
-#     icon: "图标名称"
-#     order: 排序号
-#   children:
-#     - route: "子路由名称"
-#       component: "子组件路径" 
-#       meta:
-#         title: "子路由标题"
-#         order: 子路由排序号
-
-# 路由配置
 routes:
-  # 首页模块
-  - route: "home"
+  - route: home
     component: "@/views/defaultpage/HomePage.vue"
     meta:
-      title: "首页"
-      icon: "Home"
+      title: 首页
+      icon: Home
       order: 0
-
-  # 目录页
-  - route: "contents"
+  - route: contents
     component: "@/views/defaultpage/TableOfContentsPage.vue"
     meta:
-      title: "目录"
-      icon: "List"
+      title: 目录
+      icon: List
       order: 1
-
-  # 功能展示模块
-  - route: "feature-showcase"
+  - route: feature-showcase
     component: "@/views/feature-showcase/Index.vue"
     meta:
-      title: "功能展示"
-      icon: "Grid3x3"
+      title: 功能展示
+      icon: Grid3x3
       order: 2
     children:
-      - route: "theme-showcase"
+      - route: theme-showcase
         component: "@/views/feature-showcase/ThemeShowcase.vue"
         meta:
-          title: "主题展示"
-          icon: "Palette"
+          title: 主题展示
           order: 1
-      - route: "mermaid-showcase"
+      - route: mermaid-showcase
         component: "@/views/feature-showcase/MermaidShowcase.vue"
         meta:
-          title: "Mermaid图表"
-          icon: "BarChart3"
+          title: Mermaid图表
           order: 2
-      - route: "drawio-chart-showcase"
+      - route: drawio-chart-showcase
         component: "@/views/feature-showcase/DrawioChartShowcase.vue"
         meta:
-          title: "Draw.io图表"
-          icon: "FileImage"
+          title: Draw.io图表
+          order: 3
+      - route: connector-demo
+        component: "@/views/feature-showcase/ConnectorDemo.vue"
+        meta:
+          title: 连接线演示
           order: 4
-  # PPT演示模块
-  - route: "generate-effect"
+  - route: generate-effect
     component: "@/views/ppt-presentation/index.vue"
     meta:
-      title: "自动生成效果"
-      icon: "Presentation"
+      title: 自动生成效果
+      icon: Presentation
       order: 3
     children:
-      - route: "project-overview"
+      - route: project-overview
         component: "@/views/ppt-presentation/ProjectOverview.vue"
         meta:
-          title: "项目概述"
-          icon: "Info"
+          title: 项目概述
           order: 1
-      - route: "design-philosophy"
+      - route: design-philosophy
         component: "@/views/ppt-presentation/DesignPhilosophy.vue"
         meta:
-          title: "设计理念"
-          icon: "Lightbulb"
+          title: 设计理念
           order: 2
-      - route: "technical-architecture"
+      - route: technical-architecture
         component: "@/views/ppt-presentation/TechnicalArchitecture.vue"
         meta:
-          title: "技术架构"
-          icon: "Code"
+          title: 技术架构
           order: 3
-      - route: "core-features"
+      - route: core-features
         component: "@/views/ppt-presentation/CoreFeatures.vue"
         meta:
-          title: "核心功能"
-          icon: "Zap"
+          title: 核心功能
           order: 4
-      - route: "configuration-system"
+      - route: configuration-system
         component: "@/views/ppt-presentation/ConfigurationSystem.vue"
         meta:
-          title: "配置系统"
-          icon: "Settings"
+          title: 配置系统
           order: 5
-      - route: "page-creation-process"
+      - route: page-creation-process
         component: "@/views/ppt-presentation/PageCreationProcess.vue"
         meta:
-          title: "页面创建流程"
-          icon: "FilePlus"
+          title: 页面创建流程
           order: 6
-      - route: "theme-system"
+      - route: theme-system
         component: "@/views/ppt-presentation/ThemeSystem.vue"
         meta:
-          title: "主题系统"
-          icon: "Palette"
+          title: 主题系统
           order: 7
-      - route: "deployment-guide"
+      - route: deployment-guide
         component: "@/views/ppt-presentation/DeploymentGuide.vue"
         meta:
-          title: "部署指南"
-          icon: "Cloud"
+          title: 部署指南
           order: 8
-      - route: "future-plans"
+      - route: future-plans
         component: "@/views/ppt-presentation/FuturePlans.vue"
         meta:
-          title: "未来规划"
-          icon: "Target"
+          title: 未来规划
           order: 9
-      - route: "summary"
+      - route: summary
         component: "@/views/ppt-presentation/Summary.vue"
         meta:
-          title: "总结"
-          icon: "CheckCircle"
+          title: 总结
           order: 10
-
-  # 多轮对话调整模块
-  - route: "multi-round-dialog"
+  - route: multi-round-dialog
     component: "@/views/multi-round-dialog/CoverPage.vue"
     meta:
-      title: "多轮对话调整"
-      icon: "MessageSquare"
+      title: 多轮对话调整
+      icon: MessageSquare
       order: 4
     children:
-      - route: "design-philosophy"
+      - route: design-philosophy
         component: "@/views/multi-round-dialog/DesignPhilosophy.vue"
         meta:
-          title: "设计理念"
-          icon: "Lightbulb"
+          title: 设计理念
           order: 1
-      - route: "project-architecture"
+      - route: project-architecture
         component: "@/views/multi-round-dialog/ProjectArchitecture.vue"
         meta:
-          title: "项目架构"
-          icon: "Layout"
+          title: 项目架构
           order: 2
-      - route: "dialog-screenshots"
+      - route: dialog-screenshots
         component: "@/views/multi-round-dialog/DialogScreenshots.vue"
         meta:
-          title: "对话截图展示"
-          icon: "Image"
+          title: 对话截图展示
           order: 3
-
-  # 末页模块
-  - route: "endpage"
+  - route: file-manager-demo
+    component: "@/views/file-manager-demo/FileManagerDemo.vue"
+    meta:
+      title: 测试文件处理
+      icon: Image
+      order: 5
+  - route: endpage
     component: "@/views/defaultpage/EndPage.vue"
     meta:
-      title: "末页"
-      icon: "Send"
+      title: 末页
+      icon: Send
       order: 100
+    children: []

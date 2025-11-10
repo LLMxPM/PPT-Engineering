@@ -78,6 +78,9 @@ importers:
       eslint-plugin-vue:
         specifier: ^9.20.1
         version: 9.33.0(eslint@8.57.1)
+      parse-multipart-data:
+        specifier: ^1.5.0
+        version: 1.5.0
       postcss:
         specifier: ^8.4.35
         version: 8.5.6
@@ -1719,6 +1722,9 @@ packages:
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
+
+  parse-multipart-data@1.5.0:
+    resolution: {integrity: sha512-ck5zaMF0ydjGfejNMnlo5YU2oJ+pT+80Jb1y4ybanT27j+zbVP/jkYmCrUGsEln0Ox/hZmuvgy8Ra7AxbXP2Mw==}
 
   path-browserify@1.0.1:
     resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
@@ -3932,6 +3938,8 @@ snapshots:
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
+
+  parse-multipart-data@1.5.0: {}
 
   path-browserify@1.0.1: {}
 

@@ -1,5 +1,9 @@
 <template>
   <div class="responsive-layout" :class="{ 'responsive-layout--fullscreen': isFullscreen }" :style="themeStyles">
+    <!-- 路由设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
+    <div v-if="routeSettingsVisible && !isFullscreen" class="route-settings-wrapper">
+      <RouteSettingsPanel :visible="routeSettingsVisible" @close="closeRouteSettings" @update="handleRouteUpdate" />
+    </div>
     <!-- 响应式侧边栏 -->
     <div 
       class="sidebar-wrapper"
@@ -14,6 +18,7 @@
         :navigation-items="processedNavigationItems"
         :app-config="appConfig.app"
         @collapse-change="handleCollapseChange"
+        @open-route-settings="openRouteSettings"
       />
     </div>
 
@@ -143,6 +148,7 @@ import {
   FileDown
 } from 'lucide-vue-next'
 import ResponsiveSidebar from '@/layouts/ResponsiveSidebar.vue'
+import RouteSettingsPanel from '@/layouts/RouteSettingsPanel.vue'
 import PDFExportDialog from '@/layouts/PDFExportDialog.vue'
 import { useMenu } from '@/core/composables/useMenu'
 import { usePageNavigation } from '@/core/composables/usePageNavigation'
@@ -162,6 +168,8 @@ const screenHeight = ref(window.innerHeight)
 const isSidebarHovered = ref(false)
 const isFullscreenButtonHovered = ref(false)
 const isPDFExportDialogVisible = ref(false)
+// 路由设置面板可见性
+const routeSettingsVisible = ref(false)
 
 /**
  * 固定比例缩放配置
@@ -169,6 +177,8 @@ const isPDFExportDialogVisible = ref(false)
 const DESIGN_WIDTH = 1920
 const DESIGN_HEIGHT = 1080
 const pageContentRef = ref<HTMLElement>()
+// 路由设置面板固定宽度（与面板组件一致）
+const ROUTE_SETTINGS_WIDTH = 360
 
 /**
  * 当前路由和路由器
@@ -223,6 +233,7 @@ const processedNavigationItems = computed(() => {
 const scaleRatio = computed(() => {
   const sidebarWidth = isCollapsed.value ? 80 : 280
   const paddingSize = 64 // 2rem = 32px * 2 = 64px
+  const extraLeftWidth = (!isFullscreen.value && routeSettingsVisible.value) ? ROUTE_SETTINGS_WIDTH : 0
   
   let availableWidth: number
   let availableHeight: number
@@ -233,7 +244,7 @@ const scaleRatio = computed(() => {
     availableHeight = screenHeight.value
   } else {
     // 非全屏模式：减去侧边栏宽度和padding
-    availableWidth = screenWidth.value - sidebarWidth - paddingSize
+    availableWidth = screenWidth.value - sidebarWidth - paddingSize - extraLeftWidth
     availableHeight = screenHeight.value - paddingSize
   }
   
@@ -271,6 +282,29 @@ const handleResize = (): void => {
  */
 const handleCollapseChange = (collapsed: boolean): void => {
   isCollapsed.value = collapsed
+}
+
+/**
+ * 打开路由设置面板
+ */
+const openRouteSettings = (): void => {
+  routeSettingsVisible.value = true
+}
+
+/**
+ * 关闭路由设置面板
+ */
+const closeRouteSettings = (): void => {
+  routeSettingsVisible.value = false
+}
+
+/**
+ * 路由配置更新处理
+ * 说明：面板内部保存成功后会触发 update，并随后关闭及刷新页面。
+ */
+const handleRouteUpdate = (): void => {
+  // 这里可以根据需要添加额外逻辑，例如刷新局部状态等。
+  // 当前逻辑由面板内部执行 window.location.reload() 刷新页面。
 }
 
 
@@ -443,6 +477,15 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* 路由设置面板容器样式：左侧固定宽度，与面板宽度一致 */
+.route-settings-wrapper {
+  width: 360px;
+  flex: 0 0 360px; /* 固定宽度，不参与收缩 */
+  height: 100vh;
+  border-right: 1px solid #e5e7eb; /* gray-200 */
+  background: #ffffff;
+  z-index: 101; /* 高于侧边栏基础层级 */
+}
 /* 响应式布局容器 - 固定比例模式 */
 .responsive-layout {
   display: flex;
