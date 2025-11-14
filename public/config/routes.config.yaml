@@ -123,6 +123,23 @@ routes:
       title: 测试文件处理
       icon: Image
       order: 5
+  - route: test00
+    component: "@/views/23333333/NewP44444age.vue"
+    meta:
+      title: 测试多级目录
+      icon: ""
+      order: 6
+    children:
+      - route: eee
+        component: "@/views/23333333/Ne55555555555wPage.vue"
+        meta:
+          title: eeeee
+          order: 1
+      - route: ddddd
+        component: "@/views/NewPage.vue"
+        meta:
+          title: 测试二级
+          order: 2
   - route: endpage
     component: "@/views/defaultpage/EndPage.vue"
     meta:

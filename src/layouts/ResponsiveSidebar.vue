@@ -132,12 +132,12 @@
         <button
           class="flex items-center w-full py-3 px-4 m-0 bg-transparent border-none text-gray-500 no-underline rounded-xl transition-all duration-200 cursor-pointer font-medium hover:bg-gray-100 hover:text-gray-700"
           :class="isCollapsed ? 'justify-center p-3' : ''" @mouseenter="handleSettingsHover"
-          @mouseleave="handleSettingsLeave" :title="isCollapsed ? '' : '设置'">
+          @mouseleave="handleSettingsLeave" :title="isCollapsed ? '' : '配置工具'">
           <div class="flex items-center justify-center flex-shrink-0" :class="isCollapsed ? 'mr-0' : 'mr-3'">
             <Settings class="flex-shrink-0 transition-all duration-200" :size="20" />
           </div>
           <span v-if="!isCollapsed" class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
-            设置
+            配置工具
           </span>
         </button>
       </div>
@@ -488,7 +488,7 @@ const handleSettingsHover = (event: MouseEvent): void => {
   // 检查是否超出视窗下边界
   let finalTop = menuTop
   if (menuTop + menuHeight > viewportHeight) {
-    finalTop = viewportHeight - menuHeight - 20
+    finalTop = viewportHeight - menuHeight - 125
   }
 
   settingsMenuPosition.value = {
@@ -534,9 +534,6 @@ const handleAppSettings = (): void => {
   // 暂不实现
 }
 
-/**
- * 处理路由设置
- */
 /**
  * 处理路由设置：发出打开事件，由父布局决定何时何地渲染
  */

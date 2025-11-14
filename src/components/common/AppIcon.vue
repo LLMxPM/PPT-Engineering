@@ -1,3 +1,7 @@
+<!--
+  文件用途：通用图标组件 AppIcon。支持 Lucide 图标与静态资源图标展示。
+  本次更新：为静态 SVG 图标提供内联渲染与颜色配置能力（可通过 color 属性设置）。
+-->
 <template>
   <span 
     class="app-icon inline-flex items-center justify-center"
@@ -20,6 +24,16 @@
       :color="resolvedColor"
     />
     
+    <!-- 静态 SVG 图标（内联渲染以支持颜色配置） -->
+    <span
+      v-else-if="showIcon && isStaticSvg && coloredSvgContent"
+      class="app-icon__static-svg"
+      :style="iconStyle"
+      v-html="coloredSvgContent"
+      role="img"
+      :aria-label="iconDescription || props.name || 'Icon'"
+    />
+
     <!-- 静态图标 -->
     <img
       v-else-if="showIcon && isStaticIcon && staticIconSrc"
@@ -50,7 +64,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useIcon } from '@/core/composables/useIcon'
-import { resolveColor, isThemeColor } from '@/core/utils/colorResolver'
+import { resolveColor } from '@/core/utils/colorResolver'
 
 interface Props {
   /** 图标名称 */
@@ -89,8 +103,10 @@ const {
   iconType,
   isLucideIcon,
   isStaticIcon,
+  isStaticSvg,
   staticIconSrc,
-  iconDescription
+  iconDescription,
+  staticSvgContent
 } = useIcon(computed(() => props.name))
 
 // 计算图标大小
@@ -125,6 +141,59 @@ const showFallback = computed(() => {
   return (!iconExists.value || !iconComponent.value) && props.name
 })
 
+/**
+ * 为静态 SVG 文本注入颜色与尺寸
+ * 实现要点：
+ * - 保留 fill="none" 与 fill/stroke="url(#...)"（渐变或引用）不做替换
+ * - 将其它 fill/stroke 替换为 currentColor，并在根 svg 注入 style="color: <resolvedColor>"
+ * - 去除根 svg 的 width/height，使其通过容器样式控制大小，或统一设置为 100%
+ * @param svg 原始 SVG 文本
+ * @param color 解析后的颜色值（可为 undefined）
+ * @returns 处理后的 SVG 文本
+ */
+function colorizeSvg(svg: string, color?: string): string {
+  if (!svg) return svg
+
+  let s = svg
+
+  // 1) 去除根 svg width/height 以便容器控制尺寸
+  s = s.replace(/<svg([^>]*)>/i, (match, attrs) => {
+    let newAttrs = attrs
+      .replace(/\swidth="[^"]*"/gi, '')
+      .replace(/\sheight="[^"]*"/gi, '')
+
+    // 注入 width/height="100%" 保持自适应容器
+    newAttrs = `${newAttrs} width="100%" height="100%"`
+
+    if (color) {
+      if (/style="[^"]*"/i.test(newAttrs)) {
+        newAttrs = newAttrs.replace(/style="([^"]*)"/i, (m, val) => `style="${val};color:${color}"`)
+      } else {
+        newAttrs = `${newAttrs} style="color:${color}"`
+      }
+    }
+    return `<svg${newAttrs}>`
+  })
+
+  // 2) 将非 none/非 url(#...) 的 fill/stroke 替换为 currentColor
+  s = s.replace(/fill="(.*?)"/gi, (m, val) => {
+    if (val === 'none' || /^url\(#/.test(val)) return m
+    return 'fill="currentColor"'
+  })
+  s = s.replace(/stroke="(.*?)"/gi, (m, val) => {
+    if (val === 'none' || /^url\(#/.test(val)) return m
+    return 'stroke="currentColor"'
+  })
+
+  return s
+}
+
+// 计算：着色后的 SVG 文本
+const coloredSvgContent = computed(() => {
+  const svg = staticSvgContent.value || ''
+  return colorizeSvg(svg, resolvedColor.value)
+})
+
 </script>
 
 <style scoped>
@@ -153,6 +222,16 @@ const showFallback = computed(() => {
   object-fit: contain;
   max-width: 100%;
   max-height: 100%;
+}
+
+.app-icon__static-svg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-icon__static-svg :deep(svg) {
+  width: 100%;
+  height: 100%;
 }
 
 .app-icon-fallback {

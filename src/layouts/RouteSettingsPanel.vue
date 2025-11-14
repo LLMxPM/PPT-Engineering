@@ -19,10 +19,7 @@
       <!-- 根据新需求去除右上角关闭按钮，保留标题 -->
     </div>
 
-    <!-- 顶部轻量提示（替代浏览器 alert） -->
-    <div v-if="notice.visible" class="px-4 py-2 bg-green-50 text-green-800 text-sm border-b border-green-100">
-      {{ notice.message }}
-    </div>
+    <!-- 顶部轻量提示改为全局 Toast（移除本地提示区域） -->
     <!-- 工具栏：添加、保存、取消 -->
     <div class="flex items-center px-4 py-4 gap-2">
       <button @click="openAddRoute"
@@ -66,15 +63,16 @@
 
         <!-- 路由列表 -->
         <div class="flex flex-col gap-2">
-          <div v-for="(route, index) in routes" :key="index"
+          <!-- 注意：使用 route.route 作为 key，保证排序后仍有稳定的 DOM 映射 -->
+          <div v-for="(route, index) in routes" :key="route.route"
             class="border border-gray-200 rounded-lg overflow-hidden transition-all duration-150"
-            :class="{ 'border-blue-500': expandedRoutes.has(index) }">
+            :class="{ 'border-blue-500': expandedRoutes.has(route.route) }">
             <!-- 路由头部 -->
             <div class="flex items-center gap-2 px-3 py-2 bg-green-50">
               <!-- 仅当存在子路由时显示展开按钮 -->
               <button v-if="route.children && route.children.length > 0"
                 class="flex items-center justify-center w-6 h-6 p-0 border-0 bg-transparent text-gray-500 cursor-pointer transition-transform duration-150"
-                :class="{ 'rotate-90': expandedRoutes.has(index) }" @click="toggleRouteExpand(index)">
+                :class="{ 'rotate-90': expandedRoutes.has(route.route) }" @click="toggleRouteExpand(route.route)">
                 <ChevronRight :size="14" />
               </button>
 
@@ -83,7 +81,7 @@
                   <!-- 在标题前显示排序数字 -->
                   <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-green-200 text-green-800 text-[11px] shrink-0">{{ route.meta?.order }}</span>
                   <span class="font-medium text-gray-900 text-sm truncate">{{ route.meta?.title || '未命名' }}</span>
-                  <span class="text-[11px] text-gray-500 truncate">{{ route.route }}</span>
+                  <!-- <span class="text-[11px] text-gray-500 truncate">{{ route.route }}</span> -->
                 </div>
               </div>
 
@@ -112,7 +110,7 @@
               leave-active-class="transition-all duration-300 ease-in overflow-hidden"
               enter-from-class="max-h-0 opacity-0" enter-to-class="max-h-[2000px] opacity-100"
               leave-from-class="max-h-[2000px] opacity-100" leave-to-class="max-h-0 opacity-0">
-              <div v-if="expandedRoutes.has(index) && route.children && route.children.length > 0" class="px-3 py-2 border-t border-gray-200">
+              <div v-if="expandedRoutes.has(route.route) && route.children && route.children.length > 0" class="px-3 py-2 border-t border-gray-200">
                 <!-- 子路由列表（仅展示，编辑通过弹窗） -->
                 <div class="space-y-2">
                   <div v-for="(child, childIndex) in route.children" :key="childIndex"
@@ -124,7 +122,7 @@
                           <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-green-200 text-green-800 text-[11px] shrink-0">{{ child.meta?.order }}</span>
                           <span class="font-medium text-gray-800 text-[13px] truncate">{{ child.meta?.title || '未命名子路由'
                             }}</span>
-                          <span class="text-[11px] text-gray-500 truncate">{{ child.route }}</span>
+                          <!-- <span class="text-[11px] text-gray-500 truncate">{{ child.route }}</span> -->
                         </div>
                       </div>
                       <div class="flex items-center gap-1">
@@ -150,59 +148,16 @@
     </div>
 
 
-    <!-- 编辑/新增 模态框（非浏览器弹窗） -->
-    <div v-if="editor.visible" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[1100]">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 class="text-base font-semibold text-gray-900">{{ editorHeaderTitle }}</h3>
-          <button @click="closeEditor" class="text-gray-500 hover:text-gray-700 transition-colors">
-            <X :size="18" />
-          </button>
-        </div>
-        <div class="p-4">
-          <div class="space-y-3">
-            <div>
-              <label class="block text-[12px] font-medium text-gray-700 mb-1">显示标题</label>
-              <input v-model="editor.form.meta.title" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-            </div>
-            <div>
-              <label class="block text-[12px] font-medium text-gray-700 mb-1">路由路径</label>
-              <input v-model="editor.form.route" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-            </div>
-            <div>
-              <label class="block text-[12px] font-medium text-gray-700 mb-1">组件路径</label>
-              <input v-model="editor.form.component" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[12px] font-medium text-gray-700 mb-1">排序</label>
-                <input v-model.number="editor.form.meta.order" type="number"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-              </div>
-              <!-- 顶级路由允许配置图标；子路由不显示图标配置 -->
-              <div v-if="editor.type === 'route'">
-                <label class="block text-[12px] font-medium text-gray-700 mb-1">图标</label>
-                <input v-model="editor.form.meta.icon" type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
-          <button @click="closeEditor"
-            class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
-            取消
-          </button>
-          <button @click="saveEditor"
-            class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-            保存
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- 编辑/新增 模态框（抽取为独立组件） -->
+    <RouteEditorModal
+      :visible="editor.visible"
+      :headerTitle="editorHeaderTitle"
+      :mode="editor.mode"
+      :type="editor.type"
+      v-model:form="editor.form"
+      @close="closeEditor"
+      @save="saveEditor"
+    />
 
     <!-- 通用确认弹窗（替代浏览器 confirm） -->
     <div v-if="confirm.visible" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[1100]">
@@ -234,6 +189,8 @@ import { ref, onMounted, watch } from 'vue'
 import { X, Plus, Save, Trash2, ChevronRight, Pencil } from 'lucide-vue-next'
 import { fileManagerService } from '@/core/services/FileManagerService'
 import { parse, stringify } from 'yaml'
+import { useToast } from '@/core/composables/useToast'
+import RouteEditorModal from '@/layouts/RouteEditorModal.vue'
 
 interface RouteMeta {
   title: string
@@ -273,11 +230,20 @@ const emit = defineEmits<Emits>()
 const loading = ref(false)
 const error = ref('')
 const routes = ref<RouteConfig[]>([])
-const expandedRoutes = ref<Set<number>>(new Set())
+// 展开状态集合：使用路由路径（route）作为键，避免排序导致索引错乱
+const expandedRoutes = ref<Set<string>>(new Set())
 const hasChanges = ref(false)
+const { showToast } = useToast()
 
-/** 顶部提示信息（替代 alert） */
-const notice = ref<{ visible: boolean; message: string }>({ visible: false, message: '' })
+/**
+ * 标记路由配置为已更改
+ * 作用：控制顶部“保存并刷新”按钮的禁用状态，并提醒用户当前更改尚未保存
+ */
+const markAsChanged = () => {
+  hasChanges.value = true
+}
+
+// 顶部提示改为全局 Toast：移除本地 notice 状态
 
 /** 编辑器状态：通过模态框新增/编辑 */
 const editor = ref<{
@@ -305,6 +271,24 @@ const confirm = ref<{ visible: boolean; title: string; message: string; onOk?: (
 const editorHeaderTitle = ref('编辑')
 
 const configPath = 'public/config/routes.config.yaml'
+/**
+ * sessionStorage 键名：用于在刷新后恢复编辑器（模态框）状态与表单
+ */
+const EDITOR_STORAGE_KEY = 'route-editor-session-state'
+
+/**
+ * 组件选择相关状态
+ * - fmAvailable: 文件管理服务是否可用（仅开发环境）
+ * - componentLoading: 组件列表加载中状态
+ * - componentError: 组件列表加载错误信息
+ * - componentOptions: 可选择的组件列表（值为 '@/views/...' 别名路径）
+ * - componentSearchKeyword: 组件搜索关键字
+ * - showCreateComponent: 是否显示创建新组件的表单
+ * - newComponentName: 新组件文件名（例如：NewPage.vue）
+ */
+// 组件选择与新建逻辑已迁移至子组件 RouteEditorModal
+
+// 组件选项过滤逻辑已迁移至子组件
 
 // 加载路由配置
 async function loadRoutes() {
@@ -315,12 +299,43 @@ async function loadRoutes() {
     const content = await fileManagerService.readFile(configPath)
     const config = parse(content) as RouteConfigFile
     routes.value = config.routes || []
+    // 加载后按照排序值进行排序（顶级与子路由）
+    sortRoutesInPlace(routes.value)
   } catch (err: any) {
     error.value = err.message || '加载路由配置失败'
   } finally {
     loading.value = false
   }
 }
+
+// 组件列表加载逻辑迁移至子组件
+
+// 组件文件递归列出逻辑迁移至子组件
+
+/**
+ * 转换路径为 '@/' 别名形式
+ * @param path 原始路径，例如 'src/views/Feature.vue'
+ * @returns 别名路径，例如 '@/views/Feature.vue'
+ */
+function toAliasPath(path: string): string {
+  return path.replace(/^src\//, '@/')
+}
+
+/**
+ * 规范化用户输入的组件路径
+ * - 支持 'src/views/xxx.vue'、'views/xxx.vue'、'@/views/xxx.vue'
+ * - 其他情况原样返回
+ */
+function normalizeComponentPathInput(input: string): string {
+  const val = (input || '').trim()
+  if (!val) return val
+  if (val.startsWith('@/views/')) return val
+  if (val.startsWith('src/views/')) return toAliasPath(val)
+  if (val.startsWith('views/')) return '@/'.concat(val)
+  return val
+}
+
+// 新建页面 SFC 模板构建逻辑迁移至子组件
 
 // 保存路由配置
 // 功能：保存后直接关闭并刷新页面
@@ -351,6 +366,8 @@ async function saveRoutes() {
     emit('update')
     // 保存成功后直接关闭并刷新页面
     emit('close')
+    // 刷新前清理编辑器暂存状态
+    clearEditorPersistedState()
     // 刷新页面以重新加载路由配置
     window.location.reload()
   } catch (err: any) {
@@ -361,12 +378,9 @@ async function saveRoutes() {
   }
 }
 
-// 顶部提示
+// 顶部提示改为全局 Toast
 function showNotice(message: string) {
-  notice.value = { visible: true, message }
-  window.setTimeout(() => {
-    notice.value.visible = false
-  }, 2000)
+  showToast({ type: 'info', message })
 }
 
 // 打开确认弹窗
@@ -404,6 +418,8 @@ function addRoute() {
     }
   }
   routes.value.push(newRoute)
+  // 新增后进行排序
+  sortRoutesInPlace(routes.value)
   markAsChanged()
 }
 
@@ -418,6 +434,9 @@ function openAddRoute() {
     component: '',
     meta: { title: '', icon: '', order: routes.value.length }
   }
+  // 组件选择与加载由子组件处理
+  // 打开后立即持久化，避免刷新时丢失状态
+  persistEditorState()
 }
 
 // 通过弹窗编辑顶级路由
@@ -429,12 +448,15 @@ function openEditRoute(index: number) {
   editor.value.type = 'route'
   editor.value.routeIndex = index
   editor.value.childIndex = undefined
-  editorHeaderTitle.value = '编辑路由'
+  editorHeaderTitle.value = '编辑页面路由'
   editor.value.form = {
     route: r.route,
     component: r.component,
     meta: { title: r.meta?.title || '', icon: r.meta?.icon || '', order: r.meta?.order || 0 }
   }
+  // 组件选择与加载由子组件处理
+  // 打开后立即持久化，避免刷新时丢失状态
+  persistEditorState()
 }
 
 // 通过弹窗新增子路由（子路由不配置图标）
@@ -454,6 +476,9 @@ function openAddChildRoute(parentIndex: number) {
     component: '',
     meta: { title: '', order: nextOrder }
   }
+  // 组件选择与加载由子组件处理
+  // 打开后立即持久化，避免刷新时丢失状态
+  persistEditorState()
 }
 
 // 通过弹窗编辑子路由（子路由不显示图标）
@@ -465,16 +490,21 @@ function openEditChildRoute(parentIndex: number, childIndex: number) {
   editor.value.type = 'child'
   editor.value.routeIndex = parentIndex
   editor.value.childIndex = childIndex
-  editorHeaderTitle.value = '编辑子路由'
+  editorHeaderTitle.value = '编辑子页面路由'
   editor.value.form = {
     route: child.route,
     component: child.component,
     meta: { title: child.meta?.title || '', order: child.meta?.order || 0 }
   }
+  // 组件选择与加载由子组件处理
+  // 打开后立即持久化，避免刷新时丢失状态
+  persistEditorState()
 }
 
 function closeEditor() {
   editor.value.visible = false
+  // 关闭后清理持久化状态
+  clearEditorPersistedState()
 }
 
 function saveEditor() {
@@ -484,7 +514,7 @@ function saveEditor() {
     if (mode === 'add') {
       const newRoute: RouteConfig = {
         route: form.route || 'new-route',
-        component: form.component || '@/views/NewRoute.vue',
+        component: normalizeComponentPathInput(form.component || '@/views/NewRoute.vue'),
         meta: {
           title: form.meta.title || '新路由',
           icon: form.meta.icon,
@@ -496,7 +526,7 @@ function saveEditor() {
       const target = routes.value[routeIndex]
       if (target) {
         target.route = form.route
-        target.component = form.component
+        target.component = normalizeComponentPathInput(form.component)
         target.meta.title = form.meta.title
         target.meta.icon = form.meta.icon
         target.meta.order = form.meta.order
@@ -509,7 +539,7 @@ function saveEditor() {
     if (mode === 'add') {
       const newChild: RouteChild = {
         route: form.route || 'new-child',
-        component: form.component || '@/views/NewChild.vue',
+        component: normalizeComponentPathInput(form.component || '@/views/NewChild.vue'),
         meta: {
           title: form.meta.title || '新子路由',
           order: form.meta.order ?? parent.children.length
@@ -520,23 +550,27 @@ function saveEditor() {
       const child = parent.children[childIndex]
       if (child) {
         child.route = form.route
-        child.component = form.component
+        child.component = normalizeComponentPathInput(form.component)
         child.meta.title = form.meta.title
         child.meta.order = form.meta.order
       }
     }
   }
 
+  // 编辑/新增后进行排序，保证展示顺序正确
+  sortRoutesInPlace(routes.value)
   markAsChanged()
   showNotice('更改已暂存，需要保存才能生效')
   closeEditor()
 }
 
+// 新建组件逻辑迁移至 RouteEditorModal
+
 // 删除前请求确认（顶级路由）
 function requestDeleteRoute(index: number) {
   openConfirm({
     title: '删除路由',
-    message: '确定要删除这个路由吗？',
+    message: '确定要删除这个路由吗,子页面路由也会被删除？',
     onOk: () => deleteRoute(index)
   })
 }
@@ -552,8 +586,11 @@ function requestDeleteChildRoute(parentIndex: number, childIndex: number) {
 
 // 删除路由
 function deleteRoute(index: number) {
+  const id = routes.value[index]?.route
   routes.value.splice(index, 1)
-  expandedRoutes.value.delete(index)
+  if (id) expandedRoutes.value.delete(id)
+  // 删除后进行排序，避免顺序混乱
+  sortRoutesInPlace(routes.value)
   markAsChanged()
 }
 
@@ -584,35 +621,37 @@ function deleteChildRoute(parentIndex: number, childIndex: number) {
     parent.children.splice(childIndex, 1)
     // 当子路由被删除到 0 个时，自动收起该路由
     if (parent.children.length === 0) {
-      expandedRoutes.value.delete(parentIndex)
+      const parentId = parent.route
+      if (parentId) expandedRoutes.value.delete(parentId)
     }
+    // 子路由删除后对该父级的子路由重新排序
+    parent.children.sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
     markAsChanged()
   }
 }
 
 // 切换路由展开状态（仅当存在子路由时允许展开）
-// 参数：index - 顶级路由索引
+// 参数：routeId - 顶级路由的路径标识（route 字段）
 // 逻辑：
 // - 若当前路由无子路由，则不执行展开/收起操作
 // - 有子路由时在 expandedRoutes 集合中添加/移除索引以控制展开状态
-function toggleRouteExpand(index: number) {
-  const r = routes.value[index]
+function toggleRouteExpand(routeId: string) {
+  const r = routes.value.find((x) => x.route === routeId)
   if (!r || !r.children || r.children.length === 0) return
-  if (expandedRoutes.value.has(index)) {
-    expandedRoutes.value.delete(index)
+  if (expandedRoutes.value.has(routeId)) {
+    expandedRoutes.value.delete(routeId)
   } else {
-    expandedRoutes.value.add(index)
+    expandedRoutes.value.add(routeId)
   }
 }
 
-// 标记为已更改
-function markAsChanged() {
-  hasChanges.value = true
-}
+// 标记为已更改（已在顶部定义 markAsChanged）
 
 // 关闭面板：根据新需求，取消不需要确认，直接关闭
 function onRequestClose() {
   emit('close')
+  // 面板关闭时清理持久化状态
+  clearEditorPersistedState()
 }
 
 // 监听 visible 变化，自动加载路由
@@ -625,6 +664,105 @@ watch(() => props.visible, (newVal) => {
 onMounted(() => {
   if (props.visible) {
     loadRoutes()
+  }
+  // 组件挂载后尝试恢复编辑器状态
+  restoreEditorState()
+})
+
+/**
+ * 对路由与子路由进行就地排序
+ * 目的：确保展示与保存时的顺序一致，按 meta.order 从小到大排列
+ * 注意：仅依赖 route.meta.order 与 child.meta.order，未指定则按 0 处理
+ */
+function sortRoutesInPlace(list: RouteConfig[]) {
+  // 顶级路由排序
+  list.sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
+  // 子路由排序
+  list.forEach((r) => {
+    if (Array.isArray(r.children)) {
+      r.children.sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
+    }
+  })
+}
+
+/**
+ * 将当前编辑器状态与标题持久化到 sessionStorage
+ * 目的：遇到 Vite 因新增文件触发的页面刷新时，能恢复弹窗和表单内容
+ */
+function persistEditorState() {
+  try {
+    const payload = {
+      editor: editor.value,
+      headerTitle: editorHeaderTitle.value
+    }
+    sessionStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(payload))
+  } catch (e) {
+    // 忽略持久化异常，保持体验
+    console.warn('持久化编辑器状态失败:', e)
+  }
+}
+
+/**
+ * 从 sessionStorage 恢复编辑器状态与标题
+ * - 如存在且标记为可见，则自动打开模态框并填充表单
+ */
+function restoreEditorState() {
+  try {
+    const raw = sessionStorage.getItem(EDITOR_STORAGE_KEY)
+    if (!raw) return
+    const data = JSON.parse(raw)
+    if (data && data.editor) {
+      const restored = data.editor
+      // 逐字段赋值以维持响应式引用
+      editor.value.visible = !!restored.visible
+      editor.value.mode = restored.mode || 'add'
+      editor.value.type = restored.type || 'route'
+      editor.value.routeIndex = restored.routeIndex
+      editor.value.childIndex = restored.childIndex
+      editor.value.form = {
+        route: restored.form?.route || '',
+        component: restored.form?.component || '',
+        meta: {
+          title: restored.form?.meta?.title || '',
+          icon: restored.form?.meta?.icon || '',
+          order: typeof restored.form?.meta?.order === 'number' ? restored.form.meta.order : 0
+        }
+      }
+    }
+    if (data && typeof data.headerTitle === 'string') {
+      editorHeaderTitle.value = data.headerTitle
+    }
+  } catch (e) {
+    console.warn('恢复编辑器状态失败:', e)
+  }
+}
+
+/**
+ * 清理持久化的编辑器状态
+ * - 在关闭模态框或面板、保存并刷新前调用
+ */
+function clearEditorPersistedState() {
+  try {
+    sessionStorage.removeItem(EDITOR_STORAGE_KEY)
+  } catch (e) {
+    // 忽略清理异常
+  }
+}
+
+/**
+ * 侦听编辑器与标题变化，实时持久化
+ * - 深度侦听 editor，确保表单输入随时保存
+ * - 仅在 editor 可见时保存，避免无用写入
+ */
+watch(editor, (val) => {
+  if (val.visible) {
+    persistEditorState()
+  }
+}, { deep: true })
+
+watch(editorHeaderTitle, () => {
+  if (editor.value.visible) {
+    persistEditorState()
   }
 })
 </script>

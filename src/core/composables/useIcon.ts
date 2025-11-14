@@ -1,3 +1,8 @@
+/**
+ * 文件用途：提供图标使用相关的 Vue Composable，包括图标获取、类型判断、
+ *           批量处理与注册功能。本次更新新增静态 SVG 图标的内容加载，
+ *           以支持在组件内联渲染并进行颜色配置。
+ */
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
 import { getIcon, hasIcon, getIconConfig } from '@/core/utils/icon-registry'
 import type { IconConfig } from '@/core/utils/icon-registry'
@@ -22,9 +27,15 @@ export function useIcon(iconName: string | ComputedRef<string | undefined> | Com
   const iconExists: Ref<boolean> = ref(false)
   const loading: Ref<boolean> = ref(false)
   const error: Ref<string | null> = ref(null)
+
+  // 新增：静态 SVG 内容（当为静态 SVG 图标时存储获取到的文本）
+  const staticSvgContent: Ref<string | null> = ref(null)
   
   /**
    * 加载图标数据
+   * 完整职责：
+   * 1) 根据图标名称获取组件、配置与是否存在
+   * 2) 当图标为静态且为 SVG 资源时，拉取并缓存 SVG 文本
    */
   const loadIconData = async () => {
     const name = currentIconName.value
@@ -32,6 +43,7 @@ export function useIcon(iconName: string | ComputedRef<string | undefined> | Com
       iconComponent.value = null
       iconConfig.value = undefined
       iconExists.value = false
+      staticSvgContent.value = null
       return
     }
 
@@ -48,11 +60,30 @@ export function useIcon(iconName: string | ComputedRef<string | undefined> | Com
       iconComponent.value = component
       iconConfig.value = config
       iconExists.value = exists
+
+      // 若是静态 SVG 图标，尝试加载其内容
+      if (config?.type === 'static' && config.src && config.src.toLowerCase().endsWith('.svg')) {
+        const src = resolveResourcePath(config.src)
+        try {
+          const res = await fetch(src)
+          if (!res.ok) throw new Error(`Failed to fetch svg: ${res.status}`)
+          const svgText = await res.text()
+          staticSvgContent.value = svgText
+        } catch (e) {
+          // 如果获取失败，记录错误并清空内容，但不影响其他图标逻辑
+          const msg = e instanceof Error ? e.message : 'Failed to load SVG content'
+          error.value = msg
+          staticSvgContent.value = null
+        }
+      } else {
+        staticSvgContent.value = null
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load icon'
       iconComponent.value = null
       iconConfig.value = undefined
       iconExists.value = false
+      staticSvgContent.value = null
     } finally {
       loading.value = false
     }
@@ -80,6 +111,14 @@ export function useIcon(iconName: string | ComputedRef<string | undefined> | Com
    */
   const isStaticIcon = computed((): boolean => {
     return iconType.value === 'static'
+  })
+
+  /**
+   * 计算属性：是否为静态 SVG 图标
+   */
+  const isStaticSvg = computed((): boolean => {
+    const src = iconConfig.value?.src
+    return isStaticIcon.value && typeof src === 'string' && src.toLowerCase().endsWith('.svg')
   })
   
   /**
@@ -115,9 +154,11 @@ export function useIcon(iconName: string | ComputedRef<string | undefined> | Com
     iconType,
     isLucideIcon,
     isStaticIcon,
+    isStaticSvg,
     
     // 静态图标相关
     staticIconSrc,
+    staticSvgContent,
     
     // 其他信息
     iconDescription,

@@ -72,16 +72,36 @@ class FileManagerService {
    * @param content 文件内容
    */
   async writeFile(filePath: string, content: string): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/write`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ path: filePath, content })
-    })
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Failed to write file')
+    try {
+      const response = await fetch(`${this.baseUrl}/write`, {
+        method: 'POST',
+        // 使用 keepalive 避免因页面刷新导致请求被浏览器主动中断（仅适用于较小请求体）
+        keepalive: true,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ path: filePath, content })
+      })
+      if (!response.ok) {
+        // 尝试解析错误消息；若解析失败，使用通用错误
+        let message = 'Failed to write file'
+        try {
+          const errObj = await response.json()
+          message = errObj.error || message
+        } catch {}
+        throw new Error(message)
+      }
+    } catch (err: any) {
+      // 在开发环境下，写入 public/config 等文件会触发 Vite 的 HMR 或整页刷新，
+      // 可能导致当前写入请求在响应返回前被浏览器中断，出现 net::ERR_ABORTED。
+      // 这种情况下文件通常已成功写入，可安全地忽略该异常。
+      const msg = String(err?.message || err)
+      const isAbort = /AbortError|ERR_ABORTED|The user aborted a request|fetch.*aborted/i.test(msg)
+      if (isAbort) {
+        console.warn('[FileManagerService] write aborted due to page reload/HMR, assuming success:', msg)
+        return
+      }
+      throw err
     }
   }
 

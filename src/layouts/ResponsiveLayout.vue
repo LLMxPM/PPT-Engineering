@@ -169,7 +169,44 @@ const isSidebarHovered = ref(false)
 const isFullscreenButtonHovered = ref(false)
 const isPDFExportDialogVisible = ref(false)
 // 路由设置面板可见性
-const routeSettingsVisible = ref(false)
+// 初始化在下方通过 sessionStorage 恢复
+
+/**
+ * 路由设置面板可见性持久化键
+ * 作用：在因新增组件导致的页面刷新后，自动恢复侧边面板的显示状态，配合子组件的编辑器状态恢复。
+ */
+const ROUTE_SETTINGS_VISIBLE_KEY = 'route-settings-visible'
+// 与子组件 RouteSettingsPanel.vue 保持一致的编辑器状态持久化键，用于兜底恢复侧边面板
+const EDITOR_STORAGE_KEY = 'route-editor-session-state'
+
+/**
+ * 初始化：从 sessionStorage 读取路由设置面板可见状态
+ * 目的：避免刷新后丢失侧边面板显示，从而让子组件的编辑器状态恢复逻辑得以执行
+ */
+const initialRouteSettingsVisible = (() => {
+  try {
+    const raw = sessionStorage.getItem(ROUTE_SETTINGS_VISIBLE_KEY)
+    if (raw) {
+      const data = JSON.parse(raw)
+      if (data && typeof data.visible === 'boolean') {
+        return !!data.visible
+      }
+    }
+    // 兜底：若编辑器状态存在并标记为可见，则强制展示侧边面板，以便子组件恢复模态框
+    const editorRaw = sessionStorage.getItem(EDITOR_STORAGE_KEY)
+    if (editorRaw) {
+      const ed = JSON.parse(editorRaw)
+      if (ed && ed.editor && ed.editor.visible === true) {
+        return true
+      }
+    }
+  } catch (e) {
+    console.warn('读取路由设置面板可见状态失败:', e)
+  }
+  return false
+})()
+
+const routeSettingsVisible = ref<boolean>(initialRouteSettingsVisible)
 
 /**
  * 固定比例缩放配置
@@ -473,6 +510,20 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   document.removeEventListener('keydown', handleKeydown)
+})
+
+/* 移除 mounted 恢复逻辑，改为在 setup 阶段初始化，避免 watch(immediate) 覆盖 */
+
+/**
+ * 侦听路由设置面板可见性并持久化
+ * 目的：当用户打开面板后，若页面因新增文件而刷新，刷新后仍保持面板打开，从而触发子组件的编辑器恢复逻辑。
+ */
+watch(routeSettingsVisible, (visible) => {
+  try {
+    sessionStorage.setItem(ROUTE_SETTINGS_VISIBLE_KEY, JSON.stringify({ visible }))
+  } catch (e) {
+    // 忽略持久化异常
+  }
 })
 </script>
 

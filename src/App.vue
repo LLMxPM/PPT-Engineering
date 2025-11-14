@@ -4,12 +4,15 @@
     :class="themeClass"
   >
     <router-view />
+    <!-- 全局 Toast 容器 -->
+    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
 import { watch, onMounted } from 'vue'
 import { useGlobalTheme, useTheme } from '@/core/composables/useTheme'
+import ToastContainer from '@/components/common/ToastContainer.vue'
 
 /**
  * 主应用组件

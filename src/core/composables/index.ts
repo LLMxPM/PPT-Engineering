@@ -7,7 +7,6 @@
 export * from './useTheme'
 
 // 网格布局
-export * from './useGrid'
 
 // 图标系统
 export * from './useIcon'

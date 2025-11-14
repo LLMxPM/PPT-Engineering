@@ -1,47 +1,73 @@
+<!--
+  文件用途说明：
+  SettingsMenu.vue 是 PPT-Engineering 项目的悬浮配置菜单。该版本使用 Tailwind CSS 完成样式，
+  并新增“图标管理”“资源管理”两个暂不实现的入口（保持禁用并显示提示文案）。
+  遵循项目规则：不使用 !important 与渐变色；保持文件内容不超过 1000 行。
+-->
+
 <template>
   <Teleport to="body">
-    <div 
+    <div
       v-if="visible"
-      class="settings-menu-overlay"
-      :style="{
-        position: 'fixed',
-        top: position.top + 'px',
-        left: position.left + 'px',
-        zIndex: 9999
-      }"
+      :class="['fixed pointer-events-auto z-[9999]']"
+      :style="{ top: position.top + 'px', left: position.left + 'px' }"
       @mouseenter="keepMenuVisible"
       @mouseleave="handleMouseLeave"
     >
-      <div class="settings-menu-content">
-        <div class="settings-menu-title">设置</div>
-        <ul class="settings-menu-list">
+      <div class="bg-white border border-gray-200 rounded-xl shadow-2xl p-2 min-w-[200px] whitespace-nowrap">
+        <div class="font-semibold text-gray-900 px-3 py-2 mb-1 border-b border-gray-200 text-sm">配置工具</div>
+        <ul class="list-none m-0 p-0">
           <li>
-            <button 
-              class="settings-menu-item"
+            <button
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               @click="handleAppSettings"
               disabled
             >
-              <Settings :size="18" class="menu-icon" />
-              <span>应用设置</span>
-              <span class="coming-soon">敬请期待</span>
+              <Settings :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
+              <span>基础设置</span>
+              <span class="ml-auto text-xs text-gray-400 italic">敬请期待</span>
             </button>
           </li>
           <li>
-            <button 
-              class="settings-menu-item"
+            <button
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleRouteSettings"
             >
-              <Route :size="18" class="menu-icon" />
+              <Route :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>路由设置</span>
             </button>
           </li>
           <li>
-            <button 
-              class="settings-menu-item"
+            <button
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleThemeSettings"
             >
-              <Palette :size="18" class="menu-icon" />
+              <Palette :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>主题设置</span>
+            </button>
+          </li>
+          <!-- 暂不实现：图标管理入口 -->
+          <li>
+            <button
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleIconSettings"
+              disabled
+            >
+              <Shapes :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
+              <span>图标管理</span>
+              <span class="ml-auto text-xs text-gray-400 italic">敬请期待</span>
+            </button>
+          </li>
+          <!-- 暂不实现：资源管理入口 -->
+          <li>
+            <button
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleAssetSettings"
+              disabled
+            >
+              <FolderOpen :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
+              <span>资源管理</span>
+              <span class="ml-auto text-xs text-gray-400 italic">敬请期待</span>
             </button>
           </li>
         </ul>
@@ -51,7 +77,14 @@
 </template>
 
 <script setup lang="ts">
-import { Settings, Route, Palette } from 'lucide-vue-next'
+/**
+ * SettingsMenu.vue
+ * 文档用途：悬浮的“配置工具”菜单组件，使用 Tailwind CSS 完成样式。
+ * 提供基础设置（暂不实现）、路由设置、主题设置，以及暂不实现的图标管理与资源管理入口。
+ * 规则遵循：不使用 !important 与渐变；组件用于工程内的布局辅助。
+ */
+
+import { Settings, Route, Palette, Shapes, FolderOpen } from 'lucide-vue-next'
 
 interface Props {
   visible: boolean
@@ -64,115 +97,59 @@ interface Emits {
   (e: 'app-settings'): void
   (e: 'route-settings'): void
   (e: 'theme-settings'): void
+  (e: 'icon-settings'): void
+  (e: 'asset-settings'): void
 }
 
-defineProps<Props>()
+/**
+ * 组件接收的属性
+ * - visible: 是否显示菜单
+ * - position: 菜单定位（top/left 像素值）
+ */
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+/** 保持菜单显示（鼠标进入时触发） */
 const keepMenuVisible = () => {
   emit('keep-visible')
 }
 
+/** 鼠标移出时隐藏菜单 */
 const handleMouseLeave = () => {
   emit('hide')
 }
 
+/** 基础设置（暂不实现，仅占位） */
 const handleAppSettings = () => {
-  // 暂不实现
+  // 暂不实现：仅占位，无实际逻辑
+  emit('app-settings')
 }
 
+/** 路由设置：打开路由设置面板并隐藏菜单 */
 const handleRouteSettings = () => {
   emit('route-settings')
   emit('hide')
 }
 
+/** 主题设置：打开主题设置面板并隐藏菜单 */
 const handleThemeSettings = () => {
   emit('theme-settings')
   emit('hide')
 }
+
+/** 图标管理（暂不实现，仅占位） */
+const handleIconSettings = () => {
+  // 暂不实现：仅占位，无实际逻辑
+  emit('icon-settings')
+}
+
+/** 资源管理（暂不实现，仅占位） */
+const handleAssetSettings = () => {
+  // 暂不实现：仅占位，无实际逻辑
+  emit('asset-settings')
+}
 </script>
 
 <style scoped>
-.settings-menu-overlay {
-  pointer-events: auto;
-  animation: menuFadeIn 0.2s ease-out;
-}
-
-.settings-menu-content {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  padding: 8px;
-  min-width: 200px;
-  white-space: nowrap;
-}
-
-@keyframes menuFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.settings-menu-title {
-  font-weight: 600;
-  color: #111827;
-  padding: 8px 12px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.875rem;
-}
-
-.settings-menu-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.settings-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 12px;
-  color: #374151;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-  cursor: pointer;
-  text-align: left;
-}
-
-.settings-menu-item:hover:not(:disabled) {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-.settings-menu-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.menu-icon {
-  flex-shrink: 0;
-  color: #6b7280;
-}
-
-.settings-menu-item:hover:not(:disabled) .menu-icon {
-  color: #3b82f6;
-}
-
-.coming-soon {
-  margin-left: auto;
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-style: italic;
-}
+/* 样式由 Tailwind CSS 完成，此处保留作用域样式块但不写任何规则。 */
 </style>
