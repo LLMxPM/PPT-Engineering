@@ -218,7 +218,7 @@ onMounted(loadConfig)
   <div>
     <h2>实时配置编辑器</h2>
     <textarea v-model="configContent" rows="20"></textarea>
-    <p class="text-sm text-gray-500">更改会自动保存</p>
+    <p class="text-[12px] text-gray-500">更改会自动保存</p>
   </div>
 </template>
 ```

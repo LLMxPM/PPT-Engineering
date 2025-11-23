@@ -154,6 +154,51 @@ class FileManagerService {
       return false
     }
   }
+
+  /**
+   * 创建目录（递归）
+   * @param dirPath 目录路径（相对于项目根目录）
+   */
+  async createDir(dirPath: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/mkdir`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ path: dirPath })
+    })
+    if (!response.ok) {
+      let message = 'Failed to create directory'
+      try {
+        const errObj = await response.json()
+        message = errObj.error || message
+      } catch {}
+      throw new Error(message)
+    }
+  }
+
+  /**
+   * 删除目录（默认递归）
+   * @param dirPath 目录路径（相对于项目根目录）
+   * @param recursive 是否递归删除，默认 true
+   */
+  async deleteDir(dirPath: string, recursive: boolean = true): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/rmdir`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ path: dirPath, recursive })
+    })
+    if (!response.ok) {
+      let message = 'Failed to remove directory'
+      try {
+        const errObj = await response.json()
+        message = errObj.error || message
+      } catch {}
+      throw new Error(message)
+    }
+  }
 }
 
 // 导出单例

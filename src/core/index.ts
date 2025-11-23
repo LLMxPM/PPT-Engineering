@@ -29,11 +29,7 @@ export { default as createAppRouter } from './router'
 
 // 主题系统
 export { 
-  useTheme, 
-  useGlobalTheme, 
-  initializeGlobalTheme, 
-  setGlobalTheme, 
-  getCurrentGlobalTheme 
+  useTheme
 } from './composables/useTheme'
 
 // 配置管理

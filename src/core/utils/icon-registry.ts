@@ -98,19 +98,21 @@ class IconRegistry {
    */
   private async registerLucideIcons(): Promise<void> {
     if (!this.iconConfig?.lucide_icons) return
-
-    // 遍历每个分类
-    for (const [category, icons] of Object.entries(this.iconConfig.lucide_icons)) {
-      // 遍历分类下的所有图标
-      for (const iconName of icons) {
+    const li = this.iconConfig.lucide_icons as any
+    if (Array.isArray(li)) {
+      for (const iconName of li as string[]) {
         const component = await importLucideIcon(iconName)
         if (component) {
-          this.icons.set(iconName, {
-            component,
-            type: 'lucide',
-            description: `Lucide ${iconName} icon`,
-            category: category
-          })
+          this.icons.set(iconName, { component, type: 'lucide', description: `Lucide ${iconName} icon` })
+        }
+      }
+    } else {
+      for (const [category, icons] of Object.entries(li as Record<string, string[]>)) {
+        for (const iconName of icons) {
+          const component = await importLucideIcon(iconName)
+          if (component) {
+            this.icons.set(iconName, { component, type: 'lucide', description: `Lucide ${iconName} icon`, category })
+          }
         }
       }
     }
@@ -121,19 +123,18 @@ class IconRegistry {
    */
   private registerStaticIcons(): void {
     if (!this.iconConfig?.static_icons) return
-
-    // 遍历每个分类
-    for (const [category, icons] of Object.entries(this.iconConfig.static_icons)) {
-      // 遍历分类下的所有图标
-      for (const iconConfig of icons) {
+    const si = this.iconConfig.static_icons as any
+    if (Array.isArray(si)) {
+      for (const iconConfig of si as Array<{ name: string; src: string }>) {
         const component = createStaticIconComponent(iconConfig.src, iconConfig.name)
-        this.icons.set(iconConfig.name, {
-          component,
-          type: 'static',
-          src: iconConfig.src,
-          description: iconConfig.name || `Static icon`,
-          category: category
-        })
+        this.icons.set(iconConfig.name, { component, type: 'static', src: iconConfig.src, description: iconConfig.name || 'Static icon' })
+      }
+    } else {
+      for (const [category, icons] of Object.entries(si as Record<string, Array<{ name: string; src: string }>>)) {
+        for (const iconConfig of icons) {
+          const component = createStaticIconComponent(iconConfig.src, iconConfig.name)
+          this.icons.set(iconConfig.name, { component, type: 'static', src: iconConfig.src, description: iconConfig.name || 'Static icon', category })
+        }
       }
     }
   }

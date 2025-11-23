@@ -70,7 +70,7 @@ onMounted(() => {
  * background-repeat: no-repeat 背景图片不重复
  */
 .background-image {
-  background-image: url('/img/background.png');
+  background-image: url('/img/illus/background/background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

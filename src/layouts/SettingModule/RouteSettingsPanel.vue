@@ -12,34 +12,26 @@
     - 移除抽屉与遮罩层，直接将路由设置面板作为静态容器渲染，便于放置在侧边栏的左侧。
     - 保持组件通过 visible 控制显示隐藏，由父容器负责布局位置。
   -->
-  <div v-if="visible" class="bg-green-50/50 h-screen w-[360px] flex flex-col border-r border-gray-200">
+  <div v-if="visible" class="bg-blue-50/50 h-screen w-[360px] flex flex-col border-r border-gray-200">
     <!-- 头部 -->
-    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-green-50 h-[60px]">
-      <h2 class="text-xl font-semibold text-gray-900 m-0">页面（路由）设置</h2>
-      <!-- 根据新需求去除右上角关闭按钮，保留标题 -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-blue-50 h-[60px]">
+      <h2 class="text-[20px] font-semibold text-gray-900 m-0">页面（路由）设置</h2>
+      <div class="flex items-center gap-2">
+        <button @click="openAddRoute" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100" title="添加页面">
+          <Plus :size="16" />
+        </button>
+        <button @click="saveRoutes" :disabled="!hasChanges" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed" title="保存并刷新">
+          <Save :size="16" />
+        </button>
+        <button @click="onRequestClose" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100" title="取消">
+          <X :size="16" />
+        </button>
+      </div>
     </div>
 
     <!-- 顶部轻量提示改为全局 Toast（移除本地提示区域） -->
-    <!-- 工具栏：添加、保存、取消 -->
-    <div class="flex items-center px-4 py-4 gap-2">
-      <button @click="openAddRoute"
-        class="flex items-center gap-1 px-3 py-1.5 border-0 rounded-md text-xs font-medium cursor-pointer transition-colors duration-150 bg-blue-500 text-white hover:bg-blue-600">
-        <Plus :size="14" />
-        添加页面
-      </button>
-      <button @click="saveRoutes"
-        class="flex items-center gap-1 px-3 py-1.5 border-0 rounded-md text-xs font-medium cursor-pointer transition-colors duration-150 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="!hasChanges">
-        <Save :size="14" />
-        保存并刷新
-      </button>
-      <button @click="onRequestClose"
-        class="flex items-center gap-1 px-3 py-1.5 border-0 rounded-md text-xs font-medium cursor-pointer transition-colors duration-150 bg-gray-200 text-gray-700 hover:bg-gray-200">
-        取消
-      </button>
-    </div>
     <!-- 内容区 -->
-    <div class="flex-1 overflow-y-auto px-4 pb-5">
+    <div class="flex-1 overflow-y-auto p-4 pb-5">
       <!-- 加载状态 -->
       <div v-if="loading" class="flex flex-col items-center justify-center py-10 text-center">
         <div class="w-10 h-10 border-3 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
@@ -68,7 +60,7 @@
             class="border border-gray-200 rounded-lg overflow-hidden transition-all duration-150"
             :class="{ 'border-blue-500': expandedRoutes.has(route.route) }">
             <!-- 路由头部 -->
-            <div class="flex items-center gap-2 px-3 py-2 bg-green-50">
+            <div class="flex items-center gap-2 px-3 py-2 bg-blue-50">
               <!-- 仅当存在子路由时显示展开按钮 -->
               <button v-if="route.children && route.children.length > 0"
                 class="flex items-center justify-center w-6 h-6 p-0 border-0 bg-transparent text-gray-500 cursor-pointer transition-transform duration-150"
@@ -79,8 +71,8 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <!-- 在标题前显示排序数字 -->
-                  <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-green-200 text-green-800 text-[11px] shrink-0">{{ route.meta?.order }}</span>
-                  <span class="font-medium text-gray-900 text-sm truncate">{{ route.meta?.title || '未命名' }}</span>
+                  <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{ route.meta?.order }}</span>
+                  <span class="font-medium text-gray-900 text-[14px] truncate">{{ route.meta?.title || '未命名' }}</span>
                   <!-- <span class="text-[11px] text-gray-500 truncate">{{ route.route }}</span> -->
                 </div>
               </div>
@@ -114,12 +106,12 @@
                 <!-- 子路由列表（仅展示，编辑通过弹窗） -->
                 <div class="space-y-2">
                   <div v-for="(child, childIndex) in route.children" :key="childIndex"
-                    class="px-3 py-2 bg-green-50 border border-gray-200 rounded-md">
+                    class="px-3 py-2 bg-blue-50 border border-gray-200 rounded-md">
                     <div class="flex items-center justify-between">
                       <div class="min-w-0">
                         <div class="flex items-center gap-2">
                           <!-- 在子路由标题前显示排序数字 -->
-                          <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-green-200 text-green-800 text-[11px] shrink-0">{{ child.meta?.order }}</span>
+                          <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{ child.meta?.order }}</span>
                           <span class="font-medium text-gray-800 text-[13px] truncate">{{ child.meta?.title || '未命名子路由'
                             }}</span>
                           <!-- <span class="text-[11px] text-gray-500 truncate">{{ child.route }}</span> -->
@@ -153,34 +145,24 @@
       :visible="editor.visible"
       :headerTitle="editorHeaderTitle"
       :mode="editor.mode"
-      :type="editor.type"
+      v-model:type="editor.type"
       v-model:form="editor.form"
+      v-model:parent="editor.parentRoute"
       @close="closeEditor"
       @save="saveEditor"
     />
 
-    <!-- 通用确认弹窗（替代浏览器 confirm） -->
-    <div v-if="confirm.visible" class="fixed inset-0 bg-black/40 flex items-center justify-center z-[1100]">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 class="text-base font-semibold text-gray-900">{{ confirm.title }}</h3>
-          <button @click="confirmCancel" class="text-gray-500 hover:text-gray-700 transition-colors">
-            <X :size="18" />
-          </button>
-        </div>
-        <div class="p-4 text-sm text-gray-700">{{ confirm.message }}</div>
-        <div class="flex justify-end gap-2 p-4 border-t border-gray-200">
-          <button @click="confirmCancel"
-            class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
-            取消
-          </button>
-          <button @click="confirmOk"
-            class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors">
-            确定
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      v-model:visible="confirm.visible"
+      :title="confirm.title"
+      :message="confirm.message"
+      :widthVw="40"
+      :zIndex="1100"
+      cancel-text="取消"
+      ok-text="确定"
+      @ok="confirmOk"
+      @cancel="confirmCancel"
+    />
   </div>
 </template>
 
@@ -188,9 +170,10 @@
 import { ref, onMounted, watch } from 'vue'
 import { X, Plus, Save, Trash2, ChevronRight, Pencil } from 'lucide-vue-next'
 import { fileManagerService } from '@/core/services/FileManagerService'
-import { parse, stringify } from 'yaml'
+import { getRoutes, saveRoutes as saveRoutesSvc, sortRoutesInPlace } from '@/core/services/RouteConfigService'
 import { useToast } from '@/core/composables/useToast'
-import RouteEditorModal from '@/layouts/RouteEditorModal.vue'
+import RouteEditorModal from '@/layouts/SettingModule/RouteEditorModal.vue'
+import ConfirmModal from '@/components/editor/ConfirmModal.vue'
 
 interface RouteMeta {
   title: string
@@ -252,11 +235,13 @@ const editor = ref<{
   type: 'route' | 'child'
   routeIndex?: number
   childIndex?: number
+  parentRoute?: string
   form: { route: string; component: string; meta: { title: string; icon?: string; order: number } }
 }>({
   visible: false,
   mode: 'add',
   type: 'route',
+  parentRoute: '',
   form: { route: '', component: '', meta: { title: '', icon: '', order: 0 } }
 })
 
@@ -296,10 +281,8 @@ async function loadRoutes() {
   error.value = ''
 
   try {
-    const content = await fileManagerService.readFile(configPath)
-    const config = parse(content) as RouteConfigFile
-    routes.value = config.routes || []
-    // 加载后按照排序值进行排序（顶级与子路由）
+    const list = await getRoutes()
+    routes.value = list || []
     sortRoutesInPlace(routes.value)
   } catch (err: any) {
     error.value = err.message || '加载路由配置失败'
@@ -344,23 +327,7 @@ async function saveRoutes() {
   error.value = ''
 
   try {
-    // 保存前对配置进行清洗：子路由不包含 icon 字段
-    const sanitizedRoutes: RouteConfig[] = routes.value.map((r) => {
-      const children = r.children?.map((c) => ({
-        route: c.route,
-        component: c.component,
-        meta: { title: c.meta.title, order: c.meta.order }
-      }))
-      return {
-        route: r.route,
-        component: r.component,
-        meta: { title: r.meta.title, icon: r.meta.icon, order: r.meta.order },
-        children
-      }
-    })
-    const config: RouteConfigFile = { routes: sanitizedRoutes }
-    const content = stringify(config)
-    await fileManagerService.writeFile(configPath, content)
+    await saveRoutesSvc(routes.value)
     hasChanges.value = false
     // 向外部通知更新
     emit('update')
@@ -428,6 +395,7 @@ function openAddRoute() {
   editor.value.visible = true
   editor.value.mode = 'add'
   editor.value.type = 'route'
+  editor.value.parentRoute = ''
   editorHeaderTitle.value = '新增页面（路由）'
   editor.value.form = {
     route: '',
@@ -448,6 +416,7 @@ function openEditRoute(index: number) {
   editor.value.type = 'route'
   editor.value.routeIndex = index
   editor.value.childIndex = undefined
+  editor.value.parentRoute = ''
   editorHeaderTitle.value = '编辑页面路由'
   editor.value.form = {
     route: r.route,
@@ -468,6 +437,7 @@ function openAddChildRoute(parentIndex: number) {
   editor.value.type = 'child'
   editor.value.routeIndex = parentIndex
   editor.value.childIndex = undefined
+  editor.value.parentRoute = parent.route
   editorHeaderTitle.value = '新增子页面'
   // 默认 order 取当前子路由长度
   const nextOrder = (parent.children?.length || 0)
@@ -490,6 +460,7 @@ function openEditChildRoute(parentIndex: number, childIndex: number) {
   editor.value.type = 'child'
   editor.value.routeIndex = parentIndex
   editor.value.childIndex = childIndex
+  editor.value.parentRoute = routes.value[parentIndex]?.route || ''
   editorHeaderTitle.value = '编辑子页面路由'
   editor.value.form = {
     route: child.route,
@@ -508,51 +479,82 @@ function closeEditor() {
 }
 
 function saveEditor() {
-  const { mode, type, routeIndex, childIndex, form } = editor.value
+  const { mode, type, routeIndex, childIndex, form, parentRoute } = editor.value
 
-  if (type === 'route') {
-    if (mode === 'add') {
+  const targetParentIndex = routes.value.findIndex((r) => r.route === (parentRoute || ''))
+
+  if (mode === 'add') {
+    if (type === 'route') {
       const newRoute: RouteConfig = {
         route: form.route || 'new-route',
         component: normalizeComponentPathInput(form.component || '@/views/NewRoute.vue'),
-        meta: {
-          title: form.meta.title || '新路由',
-          icon: form.meta.icon,
-          order: form.meta.order ?? routes.value.length
-        }
+        meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
       }
       routes.value.push(newRoute)
-    } else if (mode === 'edit' && typeof routeIndex === 'number') {
+    } else if (type === 'child') {
+      if (targetParentIndex >= 0) {
+        const parent = routes.value[targetParentIndex]
+        parent.children = Array.isArray(parent.children) ? parent.children : []
+        const newChild: RouteChild = {
+          route: form.route || 'new-child',
+          component: normalizeComponentPathInput(form.component || '@/views/NewChild.vue'),
+          meta: { title: form.meta.title || '新子路由', order: form.meta.order ?? parent.children.length }
+        }
+        parent.children.push(newChild)
+      } else {
+        const newRouteFallback: RouteConfig = {
+          route: form.route || 'new-route',
+          component: normalizeComponentPathInput(form.component || '@/views/NewRoute.vue'),
+          meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
+        }
+        routes.value.push(newRouteFallback)
+      }
+    }
+  } else if (mode === 'edit') {
+    if (typeof routeIndex === 'number' && typeof childIndex !== 'number') {
       const target = routes.value[routeIndex]
-      if (target) {
+      if (!target) return
+      if (type === 'route') {
         target.route = form.route
         target.component = normalizeComponentPathInput(form.component)
         target.meta.title = form.meta.title
         target.meta.icon = form.meta.icon
         target.meta.order = form.meta.order
-      }
-    }
-  } else if (type === 'child') {
-    const parent = typeof routeIndex === 'number' ? routes.value[routeIndex] : undefined
-    if (!parent) return
-    if (!parent.children) parent.children = []
-    if (mode === 'add') {
-      const newChild: RouteChild = {
-        route: form.route || 'new-child',
-        component: normalizeComponentPathInput(form.component || '@/views/NewChild.vue'),
-        meta: {
-          title: form.meta.title || '新子路由',
-          order: form.meta.order ?? parent.children.length
+      } else if (type === 'child' && targetParentIndex >= 0) {
+        const movedChild: RouteChild = {
+          route: form.route,
+          component: normalizeComponentPathInput(form.component),
+          meta: { title: form.meta.title, order: form.meta.order }
         }
+        routes.value.splice(routeIndex, 1)
+        const parent = routes.value[targetParentIndex]
+        parent.children = Array.isArray(parent.children) ? parent.children : []
+        parent.children.push(movedChild)
       }
-      parent.children.push(newChild)
-    } else if (mode === 'edit' && typeof childIndex === 'number') {
+    } else if (typeof routeIndex === 'number' && typeof childIndex === 'number') {
+      const parent = routes.value[routeIndex]
+      if (!parent || !Array.isArray(parent.children)) return
       const child = parent.children[childIndex]
-      if (child) {
+      if (!child) return
+      if (type === 'child') {
         child.route = form.route
         child.component = normalizeComponentPathInput(form.component)
         child.meta.title = form.meta.title
         child.meta.order = form.meta.order
+        if (targetParentIndex >= 0 && parent.route !== routes.value[targetParentIndex].route) {
+          parent.children.splice(childIndex, 1)
+          const targetParent = routes.value[targetParentIndex]
+          targetParent.children = Array.isArray(targetParent.children) ? targetParent.children : []
+          targetParent.children.push(child)
+        }
+      } else if (type === 'route') {
+        const newTop: RouteConfig = {
+          route: form.route,
+          component: normalizeComponentPathInput(form.component),
+          meta: { title: form.meta.title, icon: form.meta.icon, order: form.meta.order }
+        }
+        parent.children.splice(childIndex, 1)
+        routes.value.push(newTop)
       }
     }
   }
@@ -669,21 +671,7 @@ onMounted(() => {
   restoreEditorState()
 })
 
-/**
- * 对路由与子路由进行就地排序
- * 目的：确保展示与保存时的顺序一致，按 meta.order 从小到大排列
- * 注意：仅依赖 route.meta.order 与 child.meta.order，未指定则按 0 处理
- */
-function sortRoutesInPlace(list: RouteConfig[]) {
-  // 顶级路由排序
-  list.sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
-  // 子路由排序
-  list.forEach((r) => {
-    if (Array.isArray(r.children)) {
-      r.children.sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
-    }
-  })
-}
+/* 已移至公共服务：sortRoutesInPlace */
 
 /**
  * 将当前编辑器状态与标题持久化到 sessionStorage
@@ -719,6 +707,7 @@ function restoreEditorState() {
       editor.value.type = restored.type || 'route'
       editor.value.routeIndex = restored.routeIndex
       editor.value.childIndex = restored.childIndex
+      editor.value.parentRoute = restored.parentRoute || ''
       editor.value.form = {
         route: restored.form?.route || '',
         component: restored.form?.component || '',

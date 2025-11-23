@@ -17,7 +17,7 @@
           :class="toastClass(t.type)"
         >
           <div class="flex-1 min-w-0">
-            <p class="text-sm truncate" :class="textClass(t.type)">{{ t.message }}</p>
+            <p class="text-[14px] truncate" :class="textClass(t.type)">{{ t.message }}</p>
           </div>
           <button
             class="shrink-0 text-gray-500 hover:text-gray-700 transition-colors"

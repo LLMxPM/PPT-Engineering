@@ -19,8 +19,8 @@
     <component
       v-if="showIcon && isLucideIcon"
       :is="iconComponent"
-      :size="props.size"
-      :stroke-width="props.strokeWidth"
+      :size="effectiveSize"
+      :stroke-width="effectiveStrokeWidth"
       :color="resolvedColor"
     />
     
@@ -56,7 +56,7 @@
       v-else-if="showFallback"
       class="app-icon-fallback text-xs"
     >
-      {{ props.name?.charAt(0)?.toUpperCase() || '?' }}
+      {{ fallbackContent }}
     </span>
   </span>
 </template>
@@ -65,6 +65,7 @@
 import { computed } from 'vue'
 import { useIcon } from '@/core/composables/useIcon'
 import { resolveColor } from '@/core/utils/colorResolver'
+import { iconConfig as globalIconConfig } from '@/core/utils/config'
 
 interface Props {
   /** 图标名称 */
@@ -90,9 +91,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 24,
-  disabled: false,
-  strokeWidth: 2
+  disabled: false
 })
 
 // 使用图标 composable
@@ -109,10 +108,19 @@ const {
   staticSvgContent
 } = useIcon(computed(() => props.name))
 
-// 计算图标大小
+const effectiveSize = computed(() => {
+  const cfg = globalIconConfig.value?.config
+  return (props.size ?? cfg?.default_size ?? 24) as number | string
+})
+
 const iconSize = computed(() => {
-  const size = props.size
+  const size = effectiveSize.value
   return typeof size === 'number' ? `${size}px` : size
+})
+
+const effectiveStrokeWidth = computed(() => {
+  const cfg = globalIconConfig.value?.config
+  return props.strokeWidth ?? cfg?.default_stroke_width ?? 2
 })
 
 // 计算解析后的颜色值
@@ -136,9 +144,16 @@ const showIcon = computed(() => {
   return iconExists.value && iconComponent.value
 })
 
-// 计算是否显示回退状态
+const fallbackBehavior = computed(() => globalIconConfig.value?.config?.fallback_behavior || 'show_placeholder')
+const placeholderText = computed(() => globalIconConfig.value?.config?.placeholder_text ?? '?')
 const showFallback = computed(() => {
-  return (!iconExists.value || !iconComponent.value) && props.name
+  return (!iconExists.value || !iconComponent.value) && props.name && fallbackBehavior.value !== 'hide'
+})
+const fallbackContent = computed(() => {
+  if (fallbackBehavior.value === 'show_initial') {
+    return props.name?.charAt(0)?.toUpperCase() || placeholderText.value
+  }
+  return placeholderText.value
 })
 
 /**

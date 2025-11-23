@@ -38,9 +38,9 @@
   --tw-color-accent6: var(--theme-accent-6, #a78bfa);
   
   /* 字体映射 */
-  --tw-font-heading: var(--theme-font-heading, 'Noto Sans SC');
-  --tw-font-body: var(--theme-font-body, 'Noto Sans SC');
-  --tw-font-code: var(--theme-font-code, 'Fira Code');
+  --tw-font-heading: var(--theme-font-heading, 'system-ui');
+  --tw-font-body: var(--theme-font-body, 'system-ui');
+  --tw-font-code: var(--theme-font-code, 'monospace');
   --tw-font-size-base: var(--theme-font-size-base, 16px);
   
   /* 布局 */
@@ -64,7 +64,7 @@
   --z-modal: 1050;
   --z-popover: 1060;
   --z-tooltip: 1070;
-  --z-toast: 1080;
+  --z-toast: 9999;
 }
 
 /* 基础样式重置 */

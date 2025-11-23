@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import DefaultCoverPage from '@/components/layout/pagecontainer/DefaultCoverPage.vue'
+import Icon from '@/components/layout/contentcommon/Icon.vue'
+
+</script>
+
 <template>
   <DefaultCoverPage 
     title="功能展示模块"
@@ -92,12 +98,3 @@
     </template>
   </DefaultCoverPage>
 </template>
-
-<script setup lang="ts">
-import DefaultCoverPage from '@/components/layout/pagecontainer/DefaultCoverPage.vue'
-import Icon from '@/components/layout/contentcommon/Icon.vue'
-
-defineOptions({
-  name: 'FeatureShowcaseIndex'
-})
-</script>

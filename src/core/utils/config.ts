@@ -63,17 +63,11 @@ export interface RouteConfigYaml {
  * 图标配置接口 - 简化版
  */
 export interface IconConfigYaml {
-  // Lucide 图标按分类组织
-  lucide_icons: Record<string, string[]>
-  // 静态图标按分类组织
-  static_icons: Record<string, Array<{
-    name: string
-    src: string
-  }>>
+  lucide_icons: Record<string, string[]> | string[]
+  static_icons: Record<string, Array<{ name: string; src: string }>> | Array<{ name: string; src: string }>
   config: {
     default_size?: number
     default_stroke_width?: number
-    enable_cache?: boolean
     fallback_behavior?: string
     placeholder_text?: string
   }
@@ -107,12 +101,11 @@ const defaultAppConfig: AppConfig = {
  * 默认图标配置
  */
 const defaultIconConfig: IconConfigYaml = {
-  lucide_icons: {},
-  static_icons: {},
+  lucide_icons: [],
+  static_icons: [],
   config: {
     default_size: 20,
     default_stroke_width: 2,
-    enable_cache: true,
     fallback_behavior: 'show_placeholder',
     placeholder_text: '?'
   }

@@ -1,11 +1,20 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import { initializeConfig } from './core/utils/config'
-import { initializeGlobalTheme } from './core/composables/useTheme'
+/**
+ * 文件用途：应用入口，初始化配置、图标与路由并挂载应用。
+ * 本版本移除全局主题初始化，主题按配置文件默认值在 App.vue 中应用。
+ */
 import { initializeStaticIcons } from './core/utils/static-icons'
 
 // 导入全局样式
 import './styles/global.css'
+import './styles/fonts.css'
+
+// 开发环境下引入 Monaco worker 注册
+if (import.meta.env.DEV) {
+  import('./core/plugins/monaco-workers')
+}
 
 /**
  * 异步初始化应用
@@ -19,10 +28,7 @@ async function initializeApp() {
     await initializeConfig()
     // console.log('配置系统初始化完成')
     
-    // 初始化全局主题状态
-    // console.log('初始化全局主题状态...')
-    await initializeGlobalTheme()
-    // console.log('全局主题状态初始化完成')
+    // 主题系统无需在入口初始化，全局切换能力已移除
     
     // 初始化静态图标系统
     // console.log('初始化静态图标系统...')

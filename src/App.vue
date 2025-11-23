@@ -10,8 +10,12 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * 文件用途：应用根组件，应用主题样式并提供路由视图容器。
+ * 本版本移除全局主题依赖，直接根据配置文件默认主题应用样式。
+ */
 import { watch, onMounted } from 'vue'
-import { useGlobalTheme, useTheme } from '@/core/composables/useTheme'
+import { useTheme } from '@/core/composables/useTheme'
 import ToastContainer from '@/components/common/ToastContainer.vue'
 
 /**
@@ -19,11 +23,8 @@ import ToastContainer from '@/components/common/ToastContainer.vue'
  * 提供路由视图容器并应用全局主题样式
  */
 
-// 获取全局主题状态
-const { currentTheme } = useGlobalTheme()
-
-// 应用主题样式到根元素
-const { themeClass, themeStyles } = useTheme(currentTheme)
+// 应用主题样式到根元素（默认使用配置中的主题）
+const { themeClass, themeStyles } = useTheme()
 
 /**
  * 将主题样式应用到document.documentElement（:root）

@@ -1,147 +1,148 @@
 routes:
   - route: home
-    component: "@/views/defaultpage/HomePage.vue"
+    component: '@/views/defaultpage/HomePage.vue'
     meta:
       title: 首页
       icon: Home
       order: 0
+    children: []
   - route: contents
-    component: "@/views/defaultpage/TableOfContentsPage.vue"
+    component: '@/views/defaultpage/TableOfContentsPage.vue'
     meta:
       title: 目录
       icon: List
       order: 1
+  - route: '2025112301'
+    component: '@/views/abc/NewPagddddddddddde.vue'
+    meta:
+      title: 测试删除
+      icon: ''
+      order: 1
   - route: feature-showcase
-    component: "@/views/feature-showcase/Index.vue"
+    component: '@/views/feature-showcase/Index.vue'
     meta:
       title: 功能展示
       icon: Grid3x3
       order: 2
     children:
       - route: theme-showcase
-        component: "@/views/feature-showcase/ThemeShowcase.vue"
+        component: '@/views/feature-showcase/ThemeShowcase.vue'
         meta:
           title: 主题展示
           order: 1
       - route: mermaid-showcase
-        component: "@/views/feature-showcase/MermaidShowcase.vue"
+        component: '@/views/feature-showcase/MermaidShowcase.vue'
         meta:
           title: Mermaid图表
           order: 2
       - route: drawio-chart-showcase
-        component: "@/views/feature-showcase/DrawioChartShowcase.vue"
+        component: '@/views/feature-showcase/DrawioChartShowcase.vue'
         meta:
           title: Draw.io图表
           order: 3
       - route: connector-demo
-        component: "@/views/feature-showcase/ConnectorDemo.vue"
+        component: '@/views/feature-showcase/ConnectorDemo.vue'
         meta:
           title: 连接线演示
           order: 4
+      - route: monaco-editor-demo
+        component: '@/views/feature-showcase/MonacoEditorDemo.vue'
+        meta:
+          title: Monaco编辑器
+          order: 5
   - route: generate-effect
-    component: "@/views/ppt-presentation/index.vue"
+    component: '@/views/ppt-presentation/index.vue'
     meta:
-      title: 自动生成效果
+      title: 自动生成效果章节
       icon: Presentation
       order: 3
     children:
       - route: project-overview
-        component: "@/views/ppt-presentation/ProjectOverview.vue"
+        component: '@/views/ppt-presentation/ProjectOverview.vue'
         meta:
           title: 项目概述
           order: 1
       - route: design-philosophy
-        component: "@/views/ppt-presentation/DesignPhilosophy.vue"
+        component: '@/views/ppt-presentation/DesignPhilosophy.vue'
         meta:
           title: 设计理念
           order: 2
       - route: technical-architecture
-        component: "@/views/ppt-presentation/TechnicalArchitecture.vue"
+        component: '@/views/ppt-presentation/TechnicalArchitecture.vue'
         meta:
           title: 技术架构
           order: 3
       - route: core-features
-        component: "@/views/ppt-presentation/CoreFeatures.vue"
+        component: '@/views/ppt-presentation/CoreFeatures.vue'
         meta:
           title: 核心功能
           order: 4
       - route: configuration-system
-        component: "@/views/ppt-presentation/ConfigurationSystem.vue"
+        component: '@/views/ppt-presentation/ConfigurationSystem.vue'
         meta:
-          title: 配置系统
+          title: 配置系统说明
           order: 5
       - route: page-creation-process
-        component: "@/views/ppt-presentation/PageCreationProcess.vue"
+        component: '@/views/ppt-presentation/PageCreationProcess.vue'
         meta:
           title: 页面创建流程
           order: 6
       - route: theme-system
-        component: "@/views/ppt-presentation/ThemeSystem.vue"
+        component: '@/views/ppt-presentation/ThemeSystem.vue'
         meta:
           title: 主题系统
           order: 7
       - route: deployment-guide
-        component: "@/views/ppt-presentation/DeploymentGuide.vue"
+        component: '@/views/ppt-presentation/DeploymentGuide.vue'
         meta:
           title: 部署指南
           order: 8
       - route: future-plans
-        component: "@/views/ppt-presentation/FuturePlans.vue"
+        component: '@/views/ppt-presentation/FuturePlans.vue'
         meta:
           title: 未来规划
           order: 9
       - route: summary
-        component: "@/views/ppt-presentation/Summary.vue"
+        component: '@/views/ppt-presentation/Summary.vue'
         meta:
           title: 总结
           order: 10
   - route: multi-round-dialog
-    component: "@/views/multi-round-dialog/CoverPage.vue"
+    component: '@/views/multi-round-dialog/CoverPage.vue'
     meta:
       title: 多轮对话调整
       icon: MessageSquare
       order: 4
     children:
       - route: design-philosophy
-        component: "@/views/multi-round-dialog/DesignPhilosophy.vue"
+        component: '@/views/multi-round-dialog/DesignPhilosophy.vue'
         meta:
           title: 设计理念
           order: 1
       - route: project-architecture
-        component: "@/views/multi-round-dialog/ProjectArchitecture.vue"
+        component: '@/views/multi-round-dialog/ProjectArchitecture.vue'
         meta:
           title: 项目架构
           order: 2
       - route: dialog-screenshots
-        component: "@/views/multi-round-dialog/DialogScreenshots.vue"
+        component: '@/views/multi-round-dialog/DialogScreenshots.vue'
         meta:
           title: 对话截图展示
           order: 3
-  - route: file-manager-demo
-    component: "@/views/file-manager-demo/FileManagerDemo.vue"
-    meta:
-      title: 测试文件处理
-      icon: Image
-      order: 5
   - route: test00
-    component: "@/views/23333333/NewP44444age.vue"
+    component: '@/views/23333333/NewP44444age.vue'
     meta:
       title: 测试多级目录
-      icon: ""
+      icon: Bug
       order: 6
     children:
       - route: eee
-        component: "@/views/23333333/Ne55555555555wPage.vue"
+        component: '@/views/23333333/NewPa444444444444444ge.vue'
         meta:
           title: eeeee
           order: 1
-      - route: ddddd
-        component: "@/views/NewPage.vue"
-        meta:
-          title: 测试二级
-          order: 2
   - route: endpage
-    component: "@/views/defaultpage/EndPage.vue"
+    component: '@/views/defaultpage/EndPage.vue'
     meta:
       title: 末页
       icon: Send

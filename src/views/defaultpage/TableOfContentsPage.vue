@@ -64,7 +64,7 @@ defineOptions({
 /* 左侧区域 */
 .left-section {
   @apply relative w-2/5 h-full overflow-hidden;
-  background-image: url('/img/background.png');
+  background-image: url('/img/illus/background/background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

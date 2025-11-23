@@ -1,3 +1,7 @@
+/**
+ * 文件用途：主题系统 Composable，提供从配置文件加载主题并计算样式变量。
+ * 本版本移除全局主题切换能力，仅按照配置文件的默认主题或调用方指定主题使用。
+ */
 import { computed, ref, watch, type ComputedRef, type CSSProperties } from 'vue'
 import { parse } from 'yaml'
 
@@ -228,27 +232,24 @@ export async function reloadThemeConfigs(): Promise<void> {
  * @param theme 可选的主题参数，如果不传入则自动使用全局主题
  */
 export function useTheme(theme?: string | ComputedRef<string>) {
+  /**
+   * 函数用途：提供当前主题的配置与样式变量。
+   * 逻辑说明：不再依赖全局主题状态；若未显式传入主题，使用配置文件中的默认主题。
+   */
   // 确保主题配置已加载
   if (!themeConfigs.value) {
     loadThemeConfigs()
   }
 
-  // 确保全局主题已初始化
-  if (!isGlobalThemeInitialized.value) {
-    initializeGlobalTheme()
-  }
-
   /**
    * 计算当前使用的主题名称
-   * 优先级：传入的主题参数 > 全局主题 > 默认主题
+   * 优先级：传入的主题参数 > 默认主题
    */
   const resolvedTheme = computed(() => {
     if (theme) {
-      // 如果传入了主题参数，使用传入的主题
       return typeof theme === 'string' ? theme : theme.value
     }
-    // 如果没有传入主题参数，使用全局主题
-    return globalTheme.value || getDefaultTheme()
+    return getDefaultTheme()
   })
 
   /**
@@ -273,12 +274,7 @@ export function useTheme(theme?: string | ComputedRef<string>) {
   const themeClass = computed(() => {
     const currentTheme = resolvedTheme.value
     const configs = themeConfigs.value
-    
-    if (!configs) {
-      return 'theme-white'
-    }
-    
-    // 确保主题值有效，如果无效则使用白色主题
+    if (!configs) return 'theme-white'
     const validTheme = configs[currentTheme] ? currentTheme : 'white'
     return `theme-${validTheme}`
   })
@@ -330,26 +326,17 @@ export function useTheme(theme?: string | ComputedRef<string>) {
    * 计算主题Logo路径
    */
   const themeLogo = computed(() => {
+    /**
+     * 函数用途：返回当前主题的 Logo 路径（基于 BASE_URL 进行拼接）。
+     */
     const config = themeConfig.value
-    // console.log('themeConfig', config)
-    const logoPath = config.logo || 'img/logo/default.svg'
-    
-    // 如果是绝对HTTP路径，直接返回
-    if (logoPath.startsWith('http')) {
-      return logoPath
-    }
-    
-    // 获取BASE_URL
+    const logoPath = config?.logo || 'img/logo/default.svg'
+    if (logoPath.startsWith('http')) return logoPath
     const basePath = import.meta.env.BASE_URL || '/'
-    
-    // 如果是以/开头的绝对路径，需要结合BASE_URL
     if (logoPath.startsWith('/')) {
-      // 移除logoPath开头的/，然后与basePath结合
       const cleanLogoPath = logoPath.substring(1)
       return `${basePath}${cleanLogoPath}`.replace(/\/+/g, '/')
     }
-    
-    // 相对路径，直接结合BASE_URL
     return `${basePath}${logoPath}`.replace(/\/+/g, '/')
   })
 
@@ -357,30 +344,18 @@ export function useTheme(theme?: string | ComputedRef<string>) {
    * 计算主题反色Logo路径
    */
   const themeInvertLogo = computed(() => {
+    /**
+     * 函数用途：返回当前主题的反色 Logo 路径；若未配置则退回正常 Logo。
+     */
     const config = themeConfig.value
-    if (!config?.invertLogo) {
-      // 如果没有配置反色Logo，返回默认Logo
-      return themeLogo.value
-    }
-    
+    if (!config?.invertLogo) return themeLogo.value
     const logoPath = config.invertLogo
-    
-    // 如果是绝对HTTP路径，直接返回
-    if (logoPath.startsWith('http')) {
-      return logoPath
-    }
-    
-    // 获取BASE_URL
+    if (logoPath.startsWith('http')) return logoPath
     const basePath = import.meta.env.BASE_URL || '/'
-    
-    // 如果是以/开头的绝对路径，需要结合BASE_URL
     if (logoPath.startsWith('/')) {
-      // 移除logoPath开头的/，然后与basePath结合
       const cleanLogoPath = logoPath.substring(1)
       return `${basePath}${cleanLogoPath}`.replace(/\/+/g, '/')
     }
-    
-    // 相对路径，直接结合BASE_URL
     return `${basePath}${logoPath}`.replace(/\/+/g, '/')
   })
 
@@ -399,150 +374,4 @@ export function useTheme(theme?: string | ComputedRef<string>) {
     isValidTheme
   }
 }
-
-// ==================== 全局主题状态管理 ====================
-// 整合自 useGlobalTheme.ts 的功能
-
-// 全局主题状态
-const globalTheme = ref<string>('')
-const isGlobalThemeInitialized = ref(false)
-
-/**
- * 从localStorage获取用户主题偏好
- * @returns 用户保存的主题名称或null
- */
-function getUserThemePreference(): string | null {
-  try {
-    return localStorage.getItem('app-theme-preference')
-  } catch {
-    return null
-  }
-}
-
-/**
- * 保存用户主题偏好到localStorage
- * @param theme 主题名称
- */
-function saveUserThemePreference(theme: string): void {
-  try {
-    localStorage.setItem('app-theme-preference', theme)
-    // console.log('主题偏好已保存到localStorage:', theme)
-  } catch (error) {
-    console.warn('无法保存主题偏好到localStorage', error)
-  }
-}
-
-/**
- * 初始化全局主题状态
- */
-export async function initializeGlobalTheme(): Promise<void> {
-  if (isGlobalThemeInitialized.value) {
-    return
-  }
-
-  // console.log('=== 初始化全局主题状态 ===')
-  
-  // 确保主题配置已加载
-  await loadThemeConfigs()
-  
-  // 按优先级解析主题
-  let resolvedTheme = ''
-  
-  // 1. 用户偏好主题（最高优先级）
-  const userTheme = getUserThemePreference()
-  if (userTheme && isValidTheme(userTheme)) {
-    resolvedTheme = userTheme
-    // console.log('使用用户偏好主题:', resolvedTheme)
-  } else {
-    // 2. 默认主题
-    resolvedTheme = getDefaultTheme()
-    // console.log('使用默认主题:', resolvedTheme)
-  }
-  
-  // 设置全局主题
-  globalTheme.value = resolvedTheme
-  isGlobalThemeInitialized.value = true
-  
-  // console.log('全局主题初始化完成:', resolvedTheme)
-}
-
-/**
- * 切换全局主题
- * @param theme 新的主题名称
- */
-export function setGlobalTheme(theme: string): void {
-  if (!isValidTheme(theme)) {
-    console.warn('无效的主题名称:', theme)
-    return
-  }
-  
-  console.log('切换全局主题:', theme)
-  
-  // 更新全局状态
-  globalTheme.value = theme
-  
-  // 保存到localStorage
-  saveUserThemePreference(theme)
-  
-  console.log('全局主题已更新为:', theme)
-}
-
-/**
- * 获取当前全局主题
- * @returns 当前全局主题名称
- */
-export function getCurrentGlobalTheme(): string {
-  return globalTheme.value || getDefaultTheme()
-}
-
-/**
- * 全局主题管理Composable
- * 提供响应式的全局主题状态和管理方法
- */
-export function useGlobalTheme() {
-  // 如果未初始化，自动初始化
-  if (!isGlobalThemeInitialized.value) {
-    initializeGlobalTheme()
-  }
-  
-  /**
-   * 当前全局主题（响应式）
-   */
-  const currentTheme = computed(() => {
-    return globalTheme.value || getDefaultTheme()
-  })
-  
-  /**
-   * 主题是否已初始化
-   */
-  const initialized = computed(() => isGlobalThemeInitialized.value)
-  
-  /**
-   * 获取可用主题列表
-   */
-  const availableThemes = computed(() => {
-    const configs = getThemeConfigs()
-    return configs ? Object.keys(configs) : ['white']
-  })
-  
-  /**
-   * 获取主题显示名称
-   */
-  const getThemeDisplayName = (themeKey: string): string => {
-    const configs = getThemeConfigs()
-    return configs?.[themeKey]?.name || themeKey
-  }
-  
-  return {
-    // 状态
-    currentTheme,
-    initialized,
-    availableThemes,
-    
-    // 方法
-    setGlobalTheme,
-    getCurrentGlobalTheme,
-    getThemeDisplayName,
-    initializeGlobalTheme
-  }
-}
+// 全局主题切换能力已移除：不再提供 useGlobalTheme、initializeGlobalTheme、setGlobalTheme 等方法。

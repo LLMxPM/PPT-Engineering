@@ -2,7 +2,7 @@
   <DefaultContainer>
     <div class="w-full h-full flex items-center justify-center">
       <!-- 内容区域 -->
-      <div class="w-full h-full flex flex-col items-center justify-center" >
+      <div class="w-full h-full flex flex-col items-center justify-center">
         <!-- 主标题（必选） -->
         <div class="text-center mb-8">
           <slot name="title">
@@ -18,7 +18,8 @@
         </div>
 
         <!-- 自定义内容区域（可选） -->
-        <div v-if="slots.content" class="w-full mt-8 max-h-96 overflow-y-auto flex flex-col justify-center items-center content-section">
+        <div v-if="slots.content"
+          class="w-full mt-8 max-h-96 overflow-y-auto flex flex-col justify-center items-center content-section">
           <slot name="content"></slot>
         </div>
       </div>
@@ -49,7 +50,10 @@ interface Props {
   subtitle?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+const props = withDefaults(defineProps<Props>(), {
+  title: '默认章节标题',
+  subtitle: '',
+})
 
 /**
  * 获取插槽实例
@@ -58,19 +62,18 @@ const slots = useSlots()
 </script>
 
 <style scoped>
-
 .content-section {
   /* 添加平滑滚动效果 */
   scroll-behavior: smooth;
   /* 隐藏滚动条但保持功能 */
-  scrollbar-width: none;  /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
 }
 
 .content-section::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 </style>
-
-
-

@@ -28,6 +28,10 @@ interface Props {
    * @description 自定义CSS类
    */
   class?: string;
+  /**
+   * @description 线条宽度（仅对 Lucide 图标生效）
+   */
+  strokeWidth?: number;
 }
 
 defineProps<Props>();

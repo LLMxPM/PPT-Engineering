@@ -1,5 +1,5 @@
 import type { Plugin, ViteDevServer } from 'vite'
-import { readFileSync, writeFileSync, unlinkSync, readdirSync, statSync, mkdirSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, unlinkSync, readdirSync, statSync, mkdirSync, existsSync, rmSync } from 'fs'
 import { join, relative, extname } from 'path'
 import { parse as parseMultipart } from 'parse-multipart-data'
 
@@ -41,6 +41,13 @@ export default function viteFileManager(options?: Partial<FileManagerOptions>): 
         write: true,
         delete: true,
         upload: true
+      },
+      {
+        path: 'src/components/layout/pagecontainer',
+        read: true,
+        write: false,
+        delete: false,
+        upload: false
       }
     ]
   }
@@ -88,6 +95,10 @@ export default function viteFileManager(options?: Partial<FileManagerOptions>): 
             await handleDelete(req, res, rootDir, config)
           } else if (url.startsWith('/__file-manager/upload')) {
             await handleUpload(req, res, rootDir, config)
+          } else if (url.startsWith('/__file-manager/mkdir')) {
+            await handleMkdir(req, res, rootDir, config)
+          } else if (url.startsWith('/__file-manager/rmdir')) {
+            await handleRmdir(req, res, rootDir, config)
           } else {
             res.statusCode = 404
             res.end(JSON.stringify({ error: 'API endpoint not found' }))
@@ -295,7 +306,84 @@ async function handleUpload(req: any, res: any, rootDir: string, config: FileMan
 
       writeFileSync(fullPath, filePart.data)
       res.setHeader('Content-Type', 'application/json')
-      res.end(JSON.stringify({ success: true, path: targetPath }))
+  res.end(JSON.stringify({ success: true, path: targetPath }))
+  } catch (error: any) {
+    res.statusCode = 400
+    res.end(JSON.stringify({ error: error.message }))
+  }
+  })
+}
+
+/**
+ * 创建目录（递归）
+ * @param req HTTP 请求
+ * @param res HTTP 响应
+ * @param rootDir 项目根目录
+ * @param config 允许目录配置
+ */
+async function handleMkdir(req: any, res: any, rootDir: string, config: FileManagerOptions) {
+  let body = ''
+  req.on('data', (chunk: Buffer) => {
+    body += chunk.toString()
+  })
+
+  req.on('end', () => {
+    try {
+      const { path: dirPath } = JSON.parse(body)
+      const fullPath = validatePath(dirPath, rootDir, config, 'write')
+      if (!fullPath) {
+        res.statusCode = 403
+        res.end(JSON.stringify({ error: 'Access denied' }))
+        return
+      }
+      if (!existsSync(fullPath)) {
+        mkdirSync(fullPath, { recursive: true })
+      }
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ success: true, path: dirPath }))
+    } catch (error: any) {
+      res.statusCode = 400
+      res.end(JSON.stringify({ error: error.message }))
+    }
+  })
+}
+
+/**
+ * 删除目录（默认递归，受限于 allowedDirs.delete）
+ * @param req HTTP 请求
+ * @param res HTTP 响应
+ * @param rootDir 项目根目录
+ * @param config 允许目录配置
+ */
+async function handleRmdir(req: any, res: any, rootDir: string, config: FileManagerOptions) {
+  let body = ''
+  req.on('data', (chunk: Buffer) => {
+    body += chunk.toString()
+  })
+
+  req.on('end', () => {
+    try {
+      const { path: dirPath, recursive = true } = JSON.parse(body)
+      const fullPath = validatePath(dirPath, rootDir, config, 'delete')
+      if (!fullPath) {
+        res.statusCode = 403
+        res.end(JSON.stringify({ error: 'Access denied' }))
+        return
+      }
+      if (!existsSync(fullPath)) {
+        res.statusCode = 404
+        res.end(JSON.stringify({ error: 'Directory not found' }))
+        return
+      }
+      const stats = statSync(fullPath)
+      if (!stats.isDirectory()) {
+        res.statusCode = 400
+        res.end(JSON.stringify({ error: 'Target is not a directory' }))
+        return
+      }
+      rmSync(fullPath, { recursive: !!recursive, force: true })
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ success: true, path: dirPath }))
     } catch (error: any) {
       res.statusCode = 400
       res.end(JSON.stringify({ error: error.message }))

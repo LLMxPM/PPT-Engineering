@@ -8,13 +8,13 @@
           <transition name="logo-fade" mode="out-in">
             <div v-if="!isCollapsed" key="title" class="flex items-center justify-center gap-3">
               <Icon v-if="appConfig.icon" :name="appConfig.icon"
-                class="text-blue-500 flex-shrink-0 transition-all duration-200" :size="24" />
-              <h1 class="text-xl font-bold text-gray-900 m-0 text-center">
+                class="text-blue-600 flex-shrink-0 transition-all duration-200" :size="24" />
+              <h1 class="text-[22px] font-bold text-gray-900 m-0 text-center">
                 {{ appConfig.title }}
               </h1>
             </div>
             <div v-else key="icon"
-              class="w-10 h-10 bg-slate-50 text-blue-500 rounded-xl flex items-center justify-center font-bold text-xl cursor-pointer transition-all duration-200 shadow-sm border border-slate-200 hover:scale-105 hover:bg-slate-100 hover:text-blue-600 hover:shadow-md hover:border-slate-300"
+              class="w-10 h-10 bg-slate-50 text-blue-500 rounded-xl flex items-center justify-center font-bold text-[20px] cursor-pointer transition-all duration-200 shadow-sm border border-slate-200 hover:scale-105 hover:bg-slate-100 hover:text-blue-600 hover:shadow-md hover:border-slate-300"
               :title="appConfig.title">
               <Icon v-if="appConfig.icon" :name="appConfig.icon" :size="20" />
               <span v-else>
@@ -77,7 +77,7 @@
                         <ul class="list-none m-0 p-0">
                           <li v-for="child in item.children" :key="child.path">
                             <router-link :to="child.path"
-                              class="flex items-center py-2 px-3 text-gray-500 no-underline rounded-lg transition-all duration-200 text-sm hover:bg-gray-100 hover:text-gray-700"
+                              class="flex items-center py-2 px-3 text-gray-500 no-underline rounded-lg transition-all duration-200 text-[14px] hover:bg-gray-100 hover:text-gray-700"
                               :class="isActiveRoute(child.path) ? 'bg-blue-500 text-white hover:bg-blue-600 hover:text-white' : ''">
                               {{ child.title }}
                             </router-link>
@@ -93,7 +93,7 @@
                     class="list-none mt-2 mb-0 mx-0 p-1 py-0 bg-gray-50 rounded-xl overflow-hidden">
                     <li v-for="child in item.children" :key="child.path" class="m-0">
                       <router-link :to="child.path"
-                        class="flex items-center py-2 px-4 pl-8 mx-2 my-0.5 text-gray-500 no-underline rounded-lg text-sm transition-all duration-200"
+                        class="flex items-center py-2 px-4 pl-8 mx-2 my-0.5 text-gray-500 no-underline rounded-lg text-[14px] transition-all duration-200"
                         :class="isActiveRoute(child.path)
                           ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 hover:text-white hover:translate-x-1'
                           : 'hover:bg-gray-200 hover:translate-x-1 hover:shadow-sm'">
@@ -128,7 +128,7 @@
         </div>
       </nav>
 
-      <div class="mt-auto border-t border-gray-200">
+      <div class="mt-auto border-t border-gray-200" v-if="isDev">
         <button
           class="flex items-center w-full py-3 px-4 m-0 bg-transparent border-none text-gray-500 no-underline rounded-xl transition-all duration-200 cursor-pointer font-medium hover:bg-gray-100 hover:text-gray-700"
           :class="isCollapsed ? 'justify-center p-3' : ''" @mouseenter="handleSettingsHover"
@@ -152,17 +152,17 @@
           zIndex: 9999
         }">
         <div
-          class="bg-gray-800 text-white py-2 px-3 rounded-lg text-sm whitespace-nowrap shadow-lg border border-white/10 -translate-y-1/2 relative before:content-[''] before:absolute before:top-1/2 before:left-[-5px] before:-translate-y-1/2 before:w-0 before:h-0 before:border-[5px] before:border-solid before:border-transparent before:border-r-gray-800">
+          class="bg-gray-800 text-white py-2 px-3 rounded-lg text-[14px] whitespace-nowrap shadow-lg border border-white/10 -translate-y-1/2 relative before:content-[''] before:absolute before:top-1/2 before:left-[-5px] before:-translate-y-1/2 before:w-0 before:h-0 before:border-[5px] before:border-solid before:border-transparent before:border-r-gray-800">
           {{ simpleTooltipText }}
         </div>
       </div>
     </Teleport>
 
-    <SettingsMenu :visible="settingsMenuVisible" :position="settingsMenuPosition" @keep-visible="keepSettingsMenu"
+    <SettingsMenu v-if="isDev" :visible="settingsMenuVisible" :position="settingsMenuPosition" @keep-visible="keepSettingsMenu"
       @hide="hideSettingsMenu" @app-settings="handleAppSettings" @route-settings="handleRouteSettings"
-      @theme-settings="handleThemeSettings" />
+      @theme-settings="handleThemeSettings" @icon-settings="handleIconSettings" @asset-settings="handleAssetSettings" />
 
-    <SettingsModal :visible="themeSettingsModalVisible" @close="closeThemeSettings" @update="handleThemeUpdate" />
+    <!-- 主题配置面板改为由父布局渲染，此处不再引入模态框 -->
   </div>
 </template>
 
@@ -175,7 +175,7 @@ import { isRouteActive, hasActiveChild } from '@/core/utils/route-generator'
 
 import Icon from '@/components/layout/contentcommon/Icon.vue'
 import SettingsMenu from '@/layouts/SettingsMenu.vue'
-import SettingsModal from '@/layouts/SettingsModal.vue'
+// 主题配置面板由父布局统一渲染
 
 /**
  * 组件属性定义
@@ -201,10 +201,18 @@ const props = defineProps<Props>()
 /**
  * 组件事件定义
  */
-const emit = defineEmits<{
+const emit = defineEmits<{ 
   (e: 'collapseChange', collapsed: boolean): void
+  // 打开应用设置面板事件，由父布局接管渲染
+  (e: 'openAppSettings'): void
   // 打开路由设置面板事件，由父布局接管渲染
   (e: 'openRouteSettings'): void
+  // 打开主题设置面板事件，由父布局接管渲染
+  (e: 'openThemeSettings'): void
+  // 打开图标设置面板事件，由父布局接管渲染
+  (e: 'openIconSettings'): void
+  // 打开资源管理模态框事件，由父布局接管渲染
+  (e: 'openResourceManager'): void
 }>()
 
 /**
@@ -226,14 +234,14 @@ const settingsMenuPosition = ref({ top: 0, left: 0 })
 const settingsMenuTimer = ref<number | null>(null)
 
 
-// 主题设置模态框
-const themeSettingsModalVisible = ref(false)
+// 主题设置面板改为父布局控制
 
 /**
  * 当前路由和路由器
  */
 const route = useRoute()
 const router = useRouter()
+const isDev = import.meta.env.DEV
 
 
 
@@ -531,7 +539,7 @@ const hideSettingsMenu = (): void => {
  * 处理应用设置
  */
 const handleAppSettings = (): void => {
-  // 暂不实现
+  emit('openAppSettings')
 }
 
 /**
@@ -547,22 +555,30 @@ const handleRouteSettings = (): void => {
  * 处理主题设置
  */
 const handleThemeSettings = (): void => {
-  themeSettingsModalVisible.value = true
+  emit('openThemeSettings')
+}
+
+/**
+ * 处理图标设置：发出打开事件，由父布局决定渲染
+ */
+const handleIconSettings = (): void => {
+  emit('openIconSettings')
+}
+
+/** 处理资源管理：发出打开事件，由父布局决定渲染 */
+const handleAssetSettings = (): void => {
+  emit('openResourceManager')
 }
 
 /**
  * 关闭主题设置
  */
-const closeThemeSettings = (): void => {
-  themeSettingsModalVisible.value = false
-}
+// 主题设置面板关闭逻辑迁移至父布局
 
 /**
  * 处理主题更新
  */
-const handleThemeUpdate = (): void => {
-  console.log('主题已更新')
-}
+// 主题更新回调由父布局处理
 
 /**
  * 组件挂载

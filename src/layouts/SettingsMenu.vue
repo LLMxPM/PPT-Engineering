@@ -15,22 +15,20 @@
       @mouseleave="handleMouseLeave"
     >
       <div class="bg-white border border-gray-200 rounded-xl shadow-2xl p-2 min-w-[200px] whitespace-nowrap">
-        <div class="font-semibold text-gray-900 px-3 py-2 mb-1 border-b border-gray-200 text-sm">配置工具</div>
+        <div class="font-semibold text-gray-900 px-3 py-2 mb-1 border-b border-gray-200 text-[14px]">配置工具</div>
         <ul class="list-none m-0 p-0">
           <li>
             <button
-              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleAppSettings"
-              disabled
             >
               <Settings :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>基础设置</span>
-              <span class="ml-auto text-xs text-gray-400 italic">敬请期待</span>
             </button>
           </li>
           <li>
             <button
-              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleRouteSettings"
             >
               <Route :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
@@ -39,35 +37,31 @@
           </li>
           <li>
             <button
-              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleThemeSettings"
             >
               <Palette :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
-              <span>主题设置</span>
+              <span>主题配置</span>
             </button>
           </li>
           <!-- 暂不实现：图标管理入口 -->
           <li>
             <button
-              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleIconSettings"
-              disabled
             >
               <Shapes :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>图标管理</span>
-              <span class="ml-auto text-xs text-gray-400 italic">敬请期待</span>
             </button>
           </li>
-          <!-- 暂不实现：资源管理入口 -->
+          <!-- 资源管理入口 -->
           <li>
             <button
-              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-sm cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
               @click="handleAssetSettings"
-              disabled
             >
               <FolderOpen :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>资源管理</span>
-              <span class="ml-auto text-xs text-gray-400 italic">敬请期待</span>
             </button>
           </li>
         </ul>
@@ -121,8 +115,8 @@ const handleMouseLeave = () => {
 
 /** 基础设置（暂不实现，仅占位） */
 const handleAppSettings = () => {
-  // 暂不实现：仅占位，无实际逻辑
   emit('app-settings')
+  emit('hide')
 }
 
 /** 路由设置：打开路由设置面板并隐藏菜单 */
@@ -143,10 +137,10 @@ const handleIconSettings = () => {
   emit('icon-settings')
 }
 
-/** 资源管理（暂不实现，仅占位） */
+/** 资源管理入口点击：发出事件并由父组件接管 */
 const handleAssetSettings = () => {
-  // 暂不实现：仅占位，无实际逻辑
   emit('asset-settings')
+  emit('hide')
 }
 </script>
 

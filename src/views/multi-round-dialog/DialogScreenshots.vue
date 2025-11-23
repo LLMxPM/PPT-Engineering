@@ -106,7 +106,6 @@
 
 <script setup lang="ts">
 import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
-import Icon from '@/components/layout/contentcommon/Icon.vue'
 import { resolveResourcePath } from '@/core/utils/path'
 
 // 处理图片路径的函数

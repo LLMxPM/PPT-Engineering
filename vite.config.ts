@@ -28,7 +28,16 @@ export default defineConfig({
   plugins: [
     vue(),
     Inspector(),
-    viteFileManager(), // 文件管理插件（仅开发环境）
+    viteFileManager({
+      allowedDirs: [
+        { path: 'public/config', read: true, write: true, delete: false, upload: false },
+        { path: 'public/img', read: true, write: true, delete: true, upload: true },
+        { path: 'src/views', read: true, write: true, delete: true, upload: true },
+        { path: 'src/components/layout/pagecontainer', read: true, write: false, delete: false, upload: false },
+        { path: 'public/fonts', read: true, write: true, delete: true, upload: true },
+        { path: 'src/styles', read: true, write: true, delete: false, upload: false }
+      ]
+    }), // 文件管理插件（仅开发环境）
   ],
   resolve: {
     alias: {

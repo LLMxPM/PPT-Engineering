@@ -1,0 +1,84 @@
+/**
+ * 文件用途：全局字体样式文件，集中管理并声明项目使用的 WebFont。
+ * 使用说明：该文件用于存放通过主题面板上传的 .woff2 字体的 @font-face 声明。
+ * 注意事项：不要引入外部 CDN；上传后会自动追加 @font-face，保持本地可控与可缓存。
+ */
+
+/* 默认占位：可选的系统字体无需在此声明，浏览器自行解析。
+   例如：'Noto Sans SC'、'Fira Code' 将作为系统/已安装字体回退使用。*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@font-face{
+  font-family: 'Monaco';
+  src: url('/fonts/Monaco.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face{
+  font-family: 'SourceCodePro';
+  src: url('/fonts/SourceCodePro-Regular.ttf.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face{
+  font-family: '思源黑体';
+  src: url('/fonts/SourceHanSansSC-VF.otf.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face{
+  font-family: '思源宋体';
+  src: url('/fonts/SourceHanSerifSC-VF.otf.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+
+@font-face{
+  font-family: 'SourceHanSansSC-Heavy';
+  src: url('/fonts/SourceHanSansSC-Heavy.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face{
+  font-family: 'YunFengFeiYunTi';
+  src: url('/fonts/YunFengFeiYunTi.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face{
+  font-family: 'SourceCodePro-Bold.ttf';
+  src: url('/fonts/SourceCodePro-Bold.ttf.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

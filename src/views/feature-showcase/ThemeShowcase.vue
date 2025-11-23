@@ -8,7 +8,7 @@
         <!-- 文本色系统展示 -->
         <section class="bg-background-subtle border border-border-subtle rounded-lg p-6">
           <div class="flex items-center mb-6">
-            <Icon name="Type" :size="24" class="mr-3 text-primary" />
+            <Icon name="Type"  class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">文本色系统</h2>
           </div>
           

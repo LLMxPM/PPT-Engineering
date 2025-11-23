@@ -19,7 +19,7 @@
       <div class="p-6">
         <div v-if="!isExporting && !exportResult" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-[14px] font-medium text-gray-700 mb-2">
               导出范围
             </label>
             <div class="space-y-2">
@@ -30,7 +30,7 @@
                   value="current"
                   class="mr-2 text-blue-600"
                 >
-                <span class="text-sm text-gray-700">当前页面</span>
+                <span class="text-[14px] text-gray-700">当前页面</span>
               </label>
               <label class="flex items-center">
                 <input
@@ -39,13 +39,13 @@
                   value="all"
                   class="mr-2 text-blue-600"
                 >
-                <span class="text-sm text-gray-700">所有页面</span>
+                <span class="text-[14px] text-gray-700">所有页面</span>
               </label>
             </div>
           </div>
 
           <div>
-            <label for="filename" class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="filename" class="block text-[14px] font-medium text-gray-700 mb-2">
               文件名（可选）
             </label>
             <input
@@ -69,7 +69,7 @@
             <h4 class="text-lg font-medium text-gray-900 mb-2">
               正在导出PDF...
             </h4>
-            <p class="text-sm text-gray-600">
+            <p class="text-[14px] text-gray-600">
               {{ progressText }}
             </p>
           </div>
@@ -81,7 +81,7 @@
             ></div>
           </div>
 
-          <div class="text-center text-sm text-gray-500">
+          <div class="text-center text-[14px] text-gray-500">
             {{ progress.current }} / {{ progress.total }}
             <span v-if="progress.currentPageTitle">
               - {{ progress.currentPageTitle }}
@@ -91,7 +91,7 @@
           <div class="text-center">
             <button
               @click="cancelExport"
-              class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              class="px-4 py-2 text-[14px] text-gray-600 hover:text-gray-800 transition-colors"
             >
               取消导出
             </button>
@@ -109,7 +109,7 @@
               <h4 class="text-lg font-medium text-gray-900 mb-2">
                 导出成功
               </h4>
-              <p class="text-sm text-gray-600">
+              <p class="text-[14px] text-gray-600">
                 已成功导出 {{ exportResult.pageCount }} 个页面
               </p>
               <p class="text-xs text-gray-500 mt-1">
@@ -131,7 +131,7 @@
               <h4 class="text-lg font-medium text-gray-900 mb-2">
                 导出失败
               </h4>
-              <p class="text-sm text-red-600">
+              <p class="text-[14px] text-red-600">
                 {{ exportResult.error || '未知错误' }}
               </p>
             </div>
@@ -143,28 +143,28 @@
         <button
           v-if="!isExporting && !exportResult"
           @click="closeDialog"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          class="px-4 py-2 text-[14px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
         >
           取消
         </button>
         <button
           v-if="!isExporting && !exportResult"
           @click="startExport"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+          class="px-4 py-2 text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
         >
           开始导出
         </button>
         <button
           v-if="exportResult"
           @click="resetDialog"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+          class="px-4 py-2 text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
         >
           重新导出
         </button>
         <button
           v-if="exportResult"
           @click="closeDialog"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          class="px-4 py-2 text-[14px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
         >
           关闭
         </button>
