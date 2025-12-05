@@ -75,6 +75,29 @@ watch(visibleState, v => emit('update:visible', v))
 const activeTab = ref<'icon' | 'illus' | 'drawio' | 'fonts' | 'views'>('icon')
 const confirm = ref<{ visible: boolean; title: string; message: string; onOk?: () => void; onCancel?: () => void }>({ visible: false, title: '确认操作', message: '' })
 
+/**
+ * 持久化弹窗状态以便在 Vite 全量重载后自动恢复
+ */
+const HMR_RESTORE_KEY = 'resource-manager-modal:last'
+function persistModalState(): void {
+  try {
+    const payload = { visible: !!visibleState.value, activeTab: activeTab.value }
+    sessionStorage.setItem(HMR_RESTORE_KEY, JSON.stringify(payload))
+  } catch {}
+}
+function restoreModalStateIfNeeded(): void {
+  try {
+    const raw = sessionStorage.getItem(HMR_RESTORE_KEY)
+    if (!raw) return
+    sessionStorage.removeItem(HMR_RESTORE_KEY)
+    const data = JSON.parse(raw || '{}')
+    if (data && data.visible) {
+      activeTab.value = data.activeTab || activeTab.value
+      visibleState.value = true
+    }
+  } catch {}
+}
+
 /** 切换标签按钮样式 */
 function tabButtonClass(tab: 'icon' | 'illus' | 'drawio' | 'fonts' | 'views') {
   return [
@@ -343,6 +366,26 @@ onMounted(() => {
   }
   const stop = watch(fontFaceCss, css => { if (assetFontStyleEl) assetFontStyleEl.textContent = css }, { immediate: true })
   onUnmounted(() => { if (assetFontStyleEl?.parentNode) assetFontStyleEl.parentNode.removeChild(assetFontStyleEl); assetFontStyleEl = null; stop() })
+})
+
+/**
+ * 监听 HMR 与页面刷新，保存并在重载后恢复弹窗
+ */
+onMounted(() => {
+  restoreModalStateIfNeeded()
+  const beforeUnload = () => persistModalState()
+  window.addEventListener('beforeunload', beforeUnload)
+  if ((import.meta as any).hot) {
+    ;(import.meta as any).hot.on?.('vite:beforeUpdate', persistModalState)
+    ;(import.meta as any).hot.on?.('vite:full-reload', persistModalState)
+  }
+  onUnmounted(() => {
+    window.removeEventListener('beforeunload', beforeUnload)
+    if ((import.meta as any).hot) {
+      ;(import.meta as any).hot.off?.('vite:beforeUpdate', persistModalState)
+      ;(import.meta as any).hot.off?.('vite:full-reload', persistModalState)
+    }
+  })
 })
 
 /** 打开确认弹窗 */

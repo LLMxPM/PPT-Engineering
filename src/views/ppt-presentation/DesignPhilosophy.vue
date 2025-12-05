@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
+import Icon from '@/components/layout/contentcommon/Icon.vue'
+
+</script>
+
 <template>
   <DefaultContentPage title="设计理念" subtitle="构建灵活、可扩展的PPT框架">
     <template #content>
@@ -129,11 +135,3 @@
   </DefaultContentPage>
 </template>
 
-<script setup lang="ts">
-import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
-import Icon from '@/components/layout/contentcommon/Icon.vue'
-
-defineOptions({
-  name: 'DesignPhilosophy'
-})
-</script>

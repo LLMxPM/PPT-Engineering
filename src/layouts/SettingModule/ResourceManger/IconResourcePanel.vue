@@ -1,7 +1,7 @@
 <!--
   文件用途：本地图标资源面板（图标文件与注册管理）
   主要功能：
-  - 使用 ResourceManagerPanel 管理 public/img/icon 目录及文件
+  - 使用 FileManagerPanel 管理 public/img/icon 目录及文件
   - 读取/写入 public/config/icons.config.yaml，检查文件注册与注册条目文件存在
   - 支持静态图标的新增（文件上传并注册）、删除（文件+注册）、改名（图标名或文件名）
   技术栈：Vue@3 + TypeScript@5 + Tailwind CSS@3

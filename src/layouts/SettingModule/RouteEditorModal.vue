@@ -122,13 +122,9 @@
           </div>
           <!-- 页面组件预览 -->
           <div>
-            <div class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden"
-              style="aspect-ratio: 16 / 9;" :ref="setPreviewContainerRef">
-              <FixedRatioContainer :isFullscreen="false" :scale="previewScaleRatio">
-                <component v-if="selectedViewComp" :is="selectedViewComp" />
-                <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-500">
-                  请选择或输入有效的视图组件路径</div>
-              </FixedRatioContainer>
+            <div class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden" style="aspect-ratio: 16 / 9;">
+              <ViewPreview v-if="localForm.component" :filePath="localForm.component" />
+              <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-500">请选择或输入有效的视图组件路径</div>
             </div>
           </div>
         </div>
@@ -152,14 +148,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted, nextTick, defineAsyncComponent } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { fileManagerService } from '@/core/services/FileManagerService'
 import EditorModal from '@/components/editor/EditorModal.vue'
 import { listParentRouteOptions } from '@/core/services/RouteConfigService'
 import ViewResourcePanel from '@/layouts/SettingModule/ResourceManger/ViewResourcePanel.vue'
 import IconPicker from '@/components/editor/IconPicker.vue'
 import Icon from '@/components/layout/contentcommon/Icon.vue'
-import FixedRatioContainer from '@/layouts/FixedRatioContainer.vue'
+import ViewPreview from '@/components/editor/ViewPreview.vue'
 
 /**
  * Props 与 Emits 定义
@@ -278,18 +274,7 @@ const iconPickerVisible = ref(false)
 /** 顶级路由选项（作为子路由的父级选择） */
 const parentOptions = ref<{ label: string; value: string }[]>([])
 
-/**
- * 预览容器与缩放状态
- */
-const DESIGN_WIDTH = 1920
-const DESIGN_HEIGHT = 1080
-const previewContainerRef = ref<HTMLElement | null>(null)
-const previewScaleRatio = ref<number>(1)
-
-/**
- * 当前选择的视图异步组件
- */
-const selectedViewComp = ref<any | null>(null)
+/** 预览逻辑已抽取至 ViewPreview 组件 */
 
 /**
  * 同步本地组件输入框与表单的 component 字段
@@ -301,17 +286,7 @@ watch(
   { immediate: true }
 )
 
-/**
- * 同步所选组件到预览组件
- */
-watch(
-  () => localForm.value.component,
-  (val) => {
-    const normalized = normalizeComponentPath(val || '')
-    selectedViewComp.value = normalized ? createAsyncViewByAliasPath(normalized) : null
-  },
-  { immediate: true }
-)
+// 预览组件由 ViewPreview 直接根据 localForm.component 渲染
 
 // 已移除 toast（不再使用新建组件功能）
 
@@ -387,45 +362,9 @@ function normalizeComponentPath(input: string): string {
   return s
 }
 
-/**
- * 根据 '@/' 别名路径创建异步视图组件
- * @param aliasPath 别名路径，如 '@/views/Feature.vue'
- * @returns 异步组件或 null
- */
-function createAsyncViewByAliasPath(aliasPath: string) {
-  const modules = import.meta.glob('@/views/**/*.vue')
-  let loader = modules[aliasPath]
-  if (!loader) {
-    const keys = Object.keys(modules)
-    const fileName = aliasPath.split('/').pop()
-    const match = keys.find(k => k.split('/').pop() === fileName)
-    loader = match ? modules[match] : undefined
-  }
-  if (!loader) return null
-  return defineAsyncComponent(loader)
-}
+// 异步视图组件创建逻辑已抽取到 ViewPreview
 
-/**
- * 记录预览容器引用并计算缩放比例
- * @param el 容器元素
- */
-function setPreviewContainerRef(el: Element | null): void {
-  previewContainerRef.value = el as HTMLElement | null
-  computePreviewScale()
-}
-
-/**
- * 计算预览缩放比例（基于容器尺寸与设计尺寸 1920x1080）
- */
-function computePreviewScale(): void {
-  const el = previewContainerRef.value
-  if (!el) return
-  const availableWidth = el.clientWidth
-  const availableHeight = el.clientHeight
-  const scaleX = availableWidth / DESIGN_WIDTH
-  const scaleY = availableHeight / DESIGN_HEIGHT
-  previewScaleRatio.value = Math.min(scaleX, scaleY, 3)
-}
+// 缩放逻辑由 ViewPreview 处理
 
 /**
  * 加载父路由选项（来自 YAML 配置的顶级 routes）
@@ -599,12 +538,10 @@ onMounted(() => {
       fmAvailable.value = false
     })
   loadParentRouteOptions()
-  window.addEventListener('resize', computePreviewScale)
-  nextTick(() => computePreviewScale())
 })
 
 // 组件卸载时清理事件
-onUnmounted(() => { window.removeEventListener('resize', computePreviewScale) })
+onUnmounted(() => {})
 </script>
 
 <style scoped>

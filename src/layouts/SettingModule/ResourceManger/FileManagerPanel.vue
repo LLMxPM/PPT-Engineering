@@ -14,6 +14,19 @@
     <div class="grid grid-cols-[240px,1fr] gap-2 h-full min-h-0">
       <div class="border border-gray-200 rounded-md p-2 bg-white h-full min-h-0 overflow-y-auto">
         <div class="space-y-1">
+            <div class="flex items-center mb-2 border border-blue-600">
+                            <button
+                @click="viewMode = 'tile'; loadCurrentItems()"
+                :class="`px-2 py-1 text-[12px] w-1/2  ${viewMode === 'tile' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`"
+                aria-label="含子目录"
+              >含子目录</button>
+              <button
+                @click="viewMode = 'folder'; loadCurrentItems()"
+                :class="`px-2 py-1 text-[12px]  w-1/2  ${viewMode === 'folder' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`"
+                aria-label="当前目录"
+              >仅当前目录</button>
+
+            </div>
           <DirNodeItem v-for="node in dirTree" :key="node.path" :node="node" />
         </div>
       </div>
@@ -21,6 +34,14 @@
         <div class="flex items-center justify-between mb-2">
           <div class="px-2 py-1 rounded bg-gray-100 text-[14px] text-gray-700">文件目录：{{ selectedDir }}</div>
           <div class="flex items-center gap-2">
+
+            <input
+              v-if="viewMode === 'tile'"
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索文件名"
+              class="px-2 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
             <button @click="triggerUpload" class="px-2 py-1 w-24 text-[12px] bg-blue-600 text-white hover:bg-blue-700 rounded">上传文件</button>
             <slot name="header-actions"></slot>
           </div>
@@ -28,9 +49,9 @@
         <div class="flex-1 min-h-0 overflow-y-auto">
           <div v-if="loading" class="text-center text-gray-500 py-8">加载中...</div>
           <div v-else >
-            <div v-if="items.length === 0" class="text-center text-gray-500 py-8">该目录下暂无文件</div>
+            <div v-if="filteredItems.length === 0" class="text-center text-gray-500 py-8">{{ viewMode === 'tile' ? '未找到匹配文件' : '该目录下暂无文件' }}</div>
             <div v-else class="grid grid-cols-3 gap-3">
-              <div v-for="item in items" :key="item.path" class="border border-gray-200 rounded-md overflow-hidden bg-white">
+              <div v-for="item in filteredItems" :key="item.path" class="border border-gray-200 rounded-md overflow-hidden bg-white">
                 <slot name="item" :item="item" :deleteItem="deleteItem">
                   <div class="w-full h-36 bg-gray-50 flex items-center justify-center">
                     <img :src="item.publicPath" :alt="item.name" class="max-w-full max-h-full" />
@@ -110,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineComponent, h } from 'vue'
+import { ref, onMounted, onUnmounted, defineComponent, h, computed } from 'vue'
 import { resolveResourcePath } from '@/core/utils/path'
 defineSlots<{
   'item-actions'(props: { item: { name: string; path: string; publicPath: string } }): any
@@ -152,10 +173,50 @@ function buildPublicUrl(rel: string): string { return resolveResourcePath(rel) }
 type DirNode = { name: string; path: string; isDirectory: boolean; children?: DirNode[] }
 
 const items = ref<{ name: string; path: string; publicPath: string }[]>([])
+const allItems = ref<{ name: string; path: string; publicPath: string }[]>([])
 const dirTree = ref<DirNode[]>([])
 const expanded = ref<Set<string>>(new Set())
 const selectedDir = ref<string>(props.root)
 const loading = ref<boolean>(false)
+const viewMode = ref<'folder' | 'tile'>('tile')
+const searchQuery = ref<string>('')
+
+/**
+ * 持久化面板状态以便在 Vite 全量重载后自动恢复
+ */
+function hmrRestoreKey(): string { return `file-manager-panel:${props.root}` }
+function persistPanelState(): void {
+  try {
+    const payload = {
+      selectedDir: selectedDir.value,
+      viewMode: viewMode.value,
+      searchQuery: searchQuery.value,
+      expanded: Array.from(expanded.value || []),
+      renameModal: renameModal.value,
+      renameDirName: renameDirName.value,
+      createModal: createModal.value,
+      newDirName: newDirName.value
+    }
+    sessionStorage.setItem(hmrRestoreKey(), JSON.stringify(payload))
+  } catch {}
+}
+function restorePanelStateIfNeeded(): void {
+  try {
+    const raw = sessionStorage.getItem(hmrRestoreKey())
+    if (!raw) return
+    sessionStorage.removeItem(hmrRestoreKey())
+    const data = JSON.parse(raw || '{}')
+    if (typeof data.selectedDir === 'string' && data.selectedDir) selectedDir.value = data.selectedDir
+    if (data.viewMode === 'folder' || data.viewMode === 'tile') viewMode.value = data.viewMode
+    if (typeof data.searchQuery === 'string') searchQuery.value = data.searchQuery
+    if (Array.isArray(data.expanded)) expanded.value = new Set<string>(data.expanded.map((s: any) => String(s)))
+    if (data?.renameModal && typeof data.renameModal.sourcePath === 'string') renameModal.value = { visible: !!data.renameModal.visible, sourcePath: String(data.renameModal.sourcePath || '') }
+    if (typeof data.renameDirName === 'string') renameDirName.value = data.renameDirName
+    if (data?.createModal && typeof data.createModal.parentPath === 'string') createModal.value = { visible: !!data.createModal.visible, parentPath: String(data.createModal.parentPath || '') }
+    if (typeof data.newDirName === 'string') newDirName.value = data.newDirName
+    loadCurrentItems()
+  } catch {}
+}
 
 const renameModal = ref<{ visible: boolean; sourcePath: string }>({ visible: false, sourcePath: '' })
 const renameDirName = ref<string>('')
@@ -205,6 +266,46 @@ async function loadItems(): Promise<void> {
 }
 
 /**
+ * 递归收集当前选中目录及其子目录下的允许文件（平铺模式）
+ */
+async function loadAllItems(): Promise<void> {
+  loading.value = true
+  try {
+    allItems.value = await collectFilesRecursive(selectedDir.value)
+  } finally { loading.value = false }
+}
+
+/**
+ * 递归遍历指定目录，聚合允许的文件列表
+ */
+async function collectFilesRecursive(dir: string): Promise<{ name: string; path: string; publicPath: string }[]> {
+  const out: { name: string; path: string; publicPath: string }[] = []
+  try {
+    const list: any[] = await fileManagerService.listFiles(dir)
+    for (const e of (list || [])) {
+      if (e.isDirectory) {
+        const child = await collectFilesRecursive(e.path)
+        out.push(...child)
+      } else if (isAllowed(e.name)) {
+        out.push({ name: e.name, path: e.path, publicPath: buildPublicUrl(relativeImgPath(dir, e.name)) })
+      }
+    }
+  } catch {}
+  return out
+}
+
+/**
+ * 根据当前模式加载文件列表
+ */
+async function loadCurrentItems(): Promise<void> {
+  if (viewMode.value === 'tile') {
+    await loadAllItems()
+  } else {
+    await loadItems()
+  }
+}
+
+/**
  * 基于 public/img 生成相对路径
  */
 function relativeImgPath(dir: string, name: string): string {
@@ -220,13 +321,13 @@ function relativeImgPath(dir: string, name: string): string {
 function toggleDir(node: DirNode): void {
   if (!node.isDirectory) return
   selectedDir.value = node.path
-  loadItems()
+  loadCurrentItems()
 }
 
 /**
- * 选择目录并加载文件
+ * 选择目录并加载文件（根据当前模式）
  */
-function selectDir(path: string): void { selectedDir.value = path; loadItems() }
+function selectDir(path: string): void { selectedDir.value = path; loadCurrentItems() }
 
 /**
  * 计算父目录
@@ -423,7 +524,7 @@ async function refreshTree(): Promise<void> {
   const children = await buildDirTree(props.root)
   dirTree.value = [{ name: basename(props.root), path: props.root, isDirectory: true, children }]
   expanded.value.add(props.root)
-  await loadItems()
+  await loadCurrentItems()
 }
 
 const DirNodeItem = defineComponent({
@@ -592,15 +693,43 @@ async function deleteItem(item: { name: string; path: string }): Promise<void> {
   openConfirm({
     title: '删除文件',
     message: `确定删除 ${item.name} 吗？`,
-    onOk: async () => { try { await fileManagerService.deleteFile(item.path); await loadItems() } catch {} }
+    onOk: async () => { try { await fileManagerService.deleteFile(item.path); await loadCurrentItems() } catch {} }
   })
 }
 
-onMounted(async () => { await ensureRoot(); await refreshTree() })
+onMounted(async () => { restorePanelStateIfNeeded(); await ensureRoot(); await refreshTree() })
+
+onMounted(() => {
+  const beforeUnload = () => persistPanelState()
+  window.addEventListener('beforeunload', beforeUnload)
+  if ((import.meta as any).hot) {
+    ;(import.meta as any).hot.on?.('vite:beforeUpdate', persistPanelState)
+    ;(import.meta as any).hot.on?.('vite:full-reload', persistPanelState)
+  }
+  onUnmounted(() => {
+    window.removeEventListener('beforeunload', beforeUnload)
+    if ((import.meta as any).hot) {
+      ;(import.meta as any).hot.off?.('vite:beforeUpdate', persistPanelState)
+      ;(import.meta as any).hot.off?.('vite:full-reload', persistPanelState)
+    }
+  })
+})
 
 // 对外暴露刷新方法与选中目录，便于父组件在执行重命名等操作后主动刷新与获取当前目录
 function getSelectedDir(): string { return selectedDir.value }
 defineExpose({ refreshTree, loadItems, getSelectedDir })
+/**
+ * 当前展示文件集合（根据模式选择）
+ */
+const currentItems = computed(() => viewMode.value === 'tile' ? allItems.value : items.value)
+/**
+ * 搜索过滤后的展示文件列表
+ */
+const filteredItems = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return currentItems.value
+  return currentItems.value.filter(i => i.name.toLowerCase().includes(q))
+})
 
 /** 打开确认弹窗 */
 function openConfirm(options: { title?: string; message: string; okText?: string; cancelText?: string; onOk?: () => void; onCancel?: () => void }): void {

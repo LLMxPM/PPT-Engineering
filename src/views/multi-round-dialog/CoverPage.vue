@@ -1,7 +1,7 @@
 <template>
   <DefaultCoverPage 
     title="多轮对话调整"
-    subtitle="本章节页面由Tare CN 多轮对话调整后的页面"
+    subtitle="本章节页面由Tare CN 多轮对话调整后的页面123123"
   />
 </template>
 

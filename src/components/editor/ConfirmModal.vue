@@ -11,7 +11,7 @@
   <teleport to="body">
     <div v-if="visible" class="fixed inset-0 flex items-center justify-center" :style="overlayStyle" @click.self="onOverlayClick">
       <div class="bg-white rounded-lg shadow-xl mx-4" :style="containerStyle">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+        <div class="flex items-center justify-between p-3 border-b border-gray-200">
           <h3 class="text-[16px] font-semibold text-gray-900">{{ title }}</h3>
           <button @click="handleCancel" class="text-gray-500 hover:text-gray-700 transition-colors">
             <X :size="18" />

@@ -12,12 +12,6 @@ routes:
       title: 目录
       icon: List
       order: 1
-  - route: '2025112301'
-    component: '@/views/abc/NewPagddddddddddde.vue'
-    meta:
-      title: 测试删除
-      icon: ''
-      order: 1
   - route: feature-showcase
     component: '@/views/feature-showcase/Index.vue'
     meta:
@@ -92,11 +86,6 @@ routes:
         meta:
           title: 主题系统
           order: 7
-      - route: deployment-guide
-        component: '@/views/ppt-presentation/DeploymentGuide.vue'
-        meta:
-          title: 部署指南
-          order: 8
       - route: future-plans
         component: '@/views/ppt-presentation/FuturePlans.vue'
         meta:
@@ -135,12 +124,7 @@ routes:
       title: 测试多级目录
       icon: Bug
       order: 6
-    children:
-      - route: eee
-        component: '@/views/23333333/NewPa444444444444444ge.vue'
-        meta:
-          title: eeeee
-          order: 1
+    children: []
   - route: endpage
     component: '@/views/defaultpage/EndPage.vue'
     meta:

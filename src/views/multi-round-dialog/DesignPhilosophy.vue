@@ -1,7 +1,7 @@
 <template>
   <DefaultContentPage title="设计理念" subtitle="构建灵活、可扩展的PPT框架">
     <template #content>
-      <div class="h-full flex flex-col">
+      <div id ='1' class="h-full flex flex-col">
         <!-- 核心理念部分 - 使用渐变背景和强调色 -->
         <div class="mb-6 p-6 rounded-xl  from-blue-50 to-indigo-50 border-l-4 border-blue-500 shadow-sm">
           <div class="flex items-center mb-4">
@@ -186,7 +186,4 @@
 import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
 import Icon from '@/components/layout/contentcommon/Icon.vue'
 
-defineOptions({
-  name: 'FixedDesignPhilosophy'
-})
 </script>

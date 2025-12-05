@@ -7,8 +7,7 @@ import { reactive, computed } from 'vue'
 import { parse } from 'yaml'
 import type { RouteRecordRaw } from 'vue-router'
 import type { RouteConfig } from '@/core/types/navigation'
-import type { CustomTheme } from '@/core/composables/useTheme'
-import { buildConfigUrl, getBasePath } from './path'
+import { buildConfigUrl } from './path'
 
 // ==================== 配置常量 ====================
 
@@ -161,12 +160,18 @@ function getDefaultRouteRecords(): RouteRecordRaw[] {
  * @param componentPath 组件路径
  * @returns 返回动态导入函数
  */
+/**
+ * 根据传入的组件路径进行动态导入并在失败时回退到 NotFound 组件
+ * @param componentPath 组件路径（支持 '@/views/...' 或 'views/...' 以及自动转换为 '/src/...')
+ * @returns 返回用于异步加载组件的函数
+ */
 function dynamicImport(componentPath: string): () => Promise<any> {
   return async () => {
     try {
-      // 使用 Vite 的动态导入功能
-      // 通过路径模式匹配来支持任意组件路径
-      const modules = import.meta.glob('@/views/**/*.vue')
+      const modules = {
+        ...import.meta.glob('@/views/**/*.vue'),
+        ...import.meta.glob('/src/views/**/*.vue')
+      }
       
       // 调试：打印所有可用的模块键
 
@@ -210,13 +215,17 @@ function dynamicImport(componentPath: string): () => Promise<any> {
       if (moduleLoader) {
         return await moduleLoader()
       } else {
-        // 如果找不到对应组件，回退到 NotFound 组件
-        const notFoundLoader = modules['@/views/default/NotFoundPage.vue']
-        if (notFoundLoader) {
-          return await notFoundLoader()
-        } else {
-          throw new Error('NotFound组件也未找到')
+        const fallbackKeys = [
+          '@/views/defaultpage/NotFoundPage.vue',
+          '/src/views/defaultpage/NotFoundPage.vue'
+        ]
+        for (const key of fallbackKeys) {
+          const loader = modules[key]
+          if (loader) {
+            return await loader()
+          }
         }
+        throw new Error('NotFound组件也未找到')
       }
     } catch (error) {
       console.error(`加载组件失败: ${componentPath}`, error)

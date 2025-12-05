@@ -17,7 +17,7 @@
             抱歉，您访问的页面不存在或已被移动。
           </p>
           <p class="text-sm font-body text-secondary">
-            请检查URL是否正确，或返回首页继续浏览。
+            请检查URL及路由配置是否正确，或返回首页继续浏览。
           </p>
         </div>
 

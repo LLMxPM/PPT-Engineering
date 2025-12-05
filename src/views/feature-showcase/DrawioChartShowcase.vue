@@ -23,9 +23,6 @@
 import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
 import DrawioChart from '@/components/layout/contentcommon/DrawioChart.vue'
 
-defineOptions({
-  name: 'DrawioChartShowcase'
-})
 </script>
 
 <style scoped>

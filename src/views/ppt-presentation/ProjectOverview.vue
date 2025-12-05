@@ -9,9 +9,7 @@
         </div>
         
         <div class="bg-default border border-border-default rounded-lg p-6 shadow-theme-sm">
-          <p class="font-body text-lg text-secondary leading-relaxed mb-4">
-            基于大模型当前通用能力强，但没有记忆能力的现状，构建降低上下文依赖的框架，为AI编写PPT构建基础。
-          </p>
+          <p class="font-body text-lg text-secondary leading-relaxed mb-4">基于大模型当前通用能力强，但没有记忆能力的现状，构建降低上下文依赖的框架，为AI编写PPT构建基础。</p>
           <p class="font-body text-lg text-secondary leading-relaxed">
             实现完全自定义的PPT页面构建，而非套用模板。
           </p>

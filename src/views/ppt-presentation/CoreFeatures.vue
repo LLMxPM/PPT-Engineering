@@ -178,7 +178,4 @@
 import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
 import Icon from '@/components/layout/contentcommon/Icon.vue'
 
-defineOptions({
-  name: 'CoreFeatures'
-})
 </script>

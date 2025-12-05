@@ -99,6 +99,7 @@ lucide_icons:
   - Minimize2
   - FileDown
   - Ampersand
+  - TestTube
 static_icons:
   - name: slider
     src: /img/icon/slider.svg

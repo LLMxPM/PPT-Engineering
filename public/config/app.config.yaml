@@ -3,6 +3,6 @@ app:
   title: PPT-Engineering
   version: ""
   description: ""
-  baseUrl: /PPT-Engineering/
+  baseUrl: /ppt-engineering/
   features:
     showPdfExportButton: true

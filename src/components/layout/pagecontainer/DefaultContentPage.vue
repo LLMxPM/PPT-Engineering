@@ -30,7 +30,7 @@
       :show-top-border="true"
       :show-pagination="true"
       :height="50"
-      link="https://github.com/engineering-your-ai/PPT-Engineering"
+      link="https://github.com/LLMxPM/PPT-Engineering"
       link-text=" PPT Engineering"
       icon="Github"
     />

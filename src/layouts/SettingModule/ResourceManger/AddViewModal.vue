@@ -96,37 +96,49 @@
               </label>
             </div>
           </div>
-          <div v-if="form.routeType === 'child'" class="col-span-2">
+           <div v-if="form.routeType === 'child'">
             <label class="block text-[12px] font-medium text-gray-700 mb-1">父路由</label>
             <select v-model="form.parentRoute" class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option v-for="opt in parentOptions" :key="opt.value" :value="opt.value">{{ opt.label }}（{{ opt.value }}）</option>
             </select>
             <div v-if="errors.parentRoute" class="mt-1 text-[11px] text-red-600">{{ errors.parentRoute }}</div>
-            <p v-else class="mt-1 text-[11px] text-gray-500">选择一个已有顶级路由作为父路由。</p>
           </div>
+        <div v-if="form.routeType === 'route'">
+            <label class="block text-[12px] font-medium text-gray-700 mb-1">菜单图标</label>
+            <div class="relative flex items-center gap-2">
+              <Icon :name="form.routeIcon" :size="24" :stroke-width="2" class="text-gray-700" />
+              <input v-model="form.routeIcon" type="text" placeholder="选择或输入图标名称"
+                class="flex-1 px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <button @click="openIconPicker"
+                class="px-3 py-2 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">选择图标</button>
+            </div>
+          </div>
+          
           <div>
             <label class="block text-[12px] font-medium text-gray-700 mb-1">排序序号（order）</label>
             <input v-model.number="form.routeOrder" type="number" placeholder="例如：10"
-                   class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-          </div>
-          <div v-if="form.routeType === 'route'">
-            <label class="block text-[12px] font-medium text-gray-700 mb-1">菜单图标（icon 名称）</label>
-            <input v-model="form.routeIcon" type="text" placeholder="例如：home"
                    class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
         </div>
       </div>
     </div>
   </EditorModal>
+  <EditorModal :visible="iconPickerVisible" :title="'选择图标'" :widthVw="70" :heightVh="80" :zIndex="602"
+    :showFooter="false" @update:visible="v => { if (!v) iconPickerVisible = false }"
+    @cancel="() => { iconPickerVisible = false }">
+    <div class="h-[calc(80vh-100px)]">
+      <IconPicker v-model="form.routeIcon" @select="handleIconSelected" />
+    </div>
+  </EditorModal>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import yaml from 'js-yaml'
 import { upsertRouteEntry, listParentRouteOptions } from '@/core/services/RouteConfigService'
 import EditorModal from '@/components/editor/EditorModal.vue'
 import { fileManagerService } from '@/core/services/FileManagerService'
-
+import IconPicker from '@/components/editor/IconPicker.vue'
+import Icon from '@/components/layout/contentcommon/Icon.vue'
 interface Emits { (e: 'update:visible', v: boolean): void; (e: 'created', payload: { filePath: string }): void }
 const emit = defineEmits<Emits>()
 
@@ -421,6 +433,22 @@ async function loadParentRouteOptions(): Promise<void> {
   } catch {
     parentOptions.value = []
   }
+}
+
+/**
+ * 打开图标选择器弹窗
+ */
+const iconPickerVisible = ref(false)
+function openIconPicker(): void {
+  iconPickerVisible.value = true
+}
+
+/**
+ * 处理从图标选择器选中的图标并回填
+ */
+function handleIconSelected(payload: { name: string; type: 'lucide' | 'static'; src?: string }): void {
+  form.value.routeIcon = payload.name
+  iconPickerVisible.value = false
 }
 </script>
 

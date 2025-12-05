@@ -1,19 +1,19 @@
 <template>
   <div class="responsive-layout" :class="{ 'responsive-layout--fullscreen': isFullscreen }" :style="themeStyles">
     <!-- 应用设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="appSettingsVisible && !isFullscreen" class="app-settings-wrapper">
+    <div v-if="appSettingsVisible && !isFullscreen" class="settings-wrapper">
       <AppSettingsPanel :visible="appSettingsVisible" @close="closeAppSettings" @update="handleAppUpdate" />
     </div>
     <!-- 路由设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="routeSettingsVisible && !isFullscreen" class="route-settings-wrapper">
+    <div v-if="routeSettingsVisible && !isFullscreen" class="settings-wrapper">
       <RouteSettingsPanel :visible="routeSettingsVisible" @close="closeRouteSettings" @update="handleRouteUpdate" />
     </div>
     <!-- 主题设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="themeSettingsVisible && !isFullscreen" class="theme-settings-wrapper">
+    <div v-if="themeSettingsVisible && !isFullscreen" class="settings-wrapper">
       <ThemeSettingsPanel :visible="themeSettingsVisible" @close="closeThemeSettings" @update="handleThemeUpdate" />
     </div>
     <!-- 图标设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="iconSettingsVisible && !isFullscreen" class="icon-settings-wrapper">
+    <div v-if="iconSettingsVisible && !isFullscreen" class="settings-wrapper">
       <IconSettingsPanel :visible="iconSettingsVisible" @close="closeIconSettings" @update="handleIconUpdate" />
     </div>
  
@@ -100,6 +100,20 @@
           <FileDown :size="16" />
         </button>
 
+        <!-- 编辑按钮 -->
+        <button
+          class="nav-button"
+          :class="{
+            'nav-button--fullscreen': isFullscreen,
+            'nav-button--disabled': !canEditCurrentPage
+          }"
+          :disabled="!canEditCurrentPage"
+          @click.stop="openEditModal"
+          :title="canEditCurrentPage ? '编辑当前页面' : '当前页面不可编辑'"
+        >
+          <Pencil :size="16" />
+        </button>
+
         <!-- 上一页按钮 -->
         <button 
           class="nav-button nav-button--previous"
@@ -144,6 +158,24 @@
           </router-view>
         </FixedRatioContainer>
       </div>
+
+      <EditorModal
+        v-model:visible="isEditModalVisible"
+        title="编辑页面"
+        :widthVw="95"
+        :heightVh="95"
+        :showFooter="false"
+        :zIndex="1100"
+      >
+        <SplitEditorPreview
+          v-if="currentEditFilePath"
+          :filePath="currentEditFilePath"
+          :initialLeftPercent="55"
+          :initialAutoSave="true"
+          @saved="handleEditSaved"
+        />
+        <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-600">未找到可编辑的页面文件</div>
+      </EditorModal>
     </main>
 
     <!-- PDF导出对话框 -->
@@ -167,7 +199,8 @@ import {
   Minimize2,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
-  FileDown
+  FileDown,
+  Pencil
 } from 'lucide-vue-next'
 import ResponsiveSidebar from '@/layouts/ResponsiveSidebar.vue'
 import FixedRatioContainer from '@/layouts/FixedRatioContainer.vue'
@@ -181,6 +214,10 @@ import { useMenu } from '@/core/composables/useMenu'
 import { usePageNavigation } from '@/core/composables/usePageNavigation'
 import { PDFExportService } from '@/core/services/PDFExportService'
 import { appConfig } from '@/core/utils/config'
+import SplitEditorPreview from '@/components/editor/SplitEditorPreview.vue'
+import EditorModal from '@/components/editor/EditorModal.vue'
+import { loadRouteConfig } from '@/core/utils/config'
+import { normalizeViewComponentPath as svcNormalize } from '@/core/services/RouteConfigService'
 import { useTheme } from '@/core/composables/useTheme'
 
 // 应用配置已迁移到 @/config/app.config.ts
@@ -311,6 +348,7 @@ const PADDING_SIZE = 64
  * 当前路由和路由器
  */
 const router = useRouter()
+const currentRoute = useRoute()
 
 /**
  * 使用菜单系统
@@ -713,38 +751,86 @@ const scaleRatio = computed(() => {
   const scaleY = availableHeight / DESIGN_HEIGHT
   return Math.min(scaleX, scaleY, 3)
 })
+
+/**
+ * 计算属性：当前页面是否可编辑
+ */
+const canEditCurrentPage = computed(() => {
+  const name = String(currentRoute.name || '')
+  return name !== 'NotFound'
+})
+
+/**
+ * 状态：编辑弹窗与当前编辑文件路径
+ */
+const isEditModalVisible = ref<boolean>(false)
+const currentEditFilePath = ref<string>('')
+
+/**
+ * 打开编辑弹窗
+ */
+const openEditModal = async (): Promise<void> => {
+  if (!canEditCurrentPage.value) return
+  currentEditFilePath.value = await resolveComponentPathForCurrentRoute()
+  isEditModalVisible.value = true
+}
+
+/**
+ * 关闭编辑弹窗
+ */
+const closeEditModal = (): void => {
+  isEditModalVisible.value = false
+}
+
+/**
+ * 保存回调：可按需刷新或提示
+ */
+const handleEditSaved = (_path: string): void => {
+  // 目前依赖 HMR 刷新，保留占位以便后续扩展
+}
+
+/**
+ * 解析当前路由对应的组件文件路径（返回 'src/...'）
+ */
+/**
+ * 解析当前路由对应的组件文件路径（返回 'src/...'）
+ * 优先使用唯一的路由名称进行匹配，避免子路由同名但父路由不同导致误匹配；
+ * 若名称缺失则回退到完整路径精确匹配（移除查询与哈希并规范化斜杠）。
+ */
+async function resolveComponentPathForCurrentRoute(): Promise<string> {
+  try {
+    const routeConfig = await loadRouteConfig()
+    const normalizePath = (p: string): string => {
+      const base = String(p || '').split('#')[0].split('?')[0]
+      return base.replace(/\/+$/, '')
+    }
+    const curPath = normalizePath(currentRoute.path || '')
+    const segments = curPath.split('/').filter(Boolean)
+    if (segments.length === 0) return ''
+    const parentSeg = segments[0]
+    for (const r of routeConfig.routes || []) {
+      if (String(r.route) === parentSeg) {
+        if (segments.length === 1) {
+          return svcNormalize(r.component)
+        }
+        const childSeg = segments[1]
+        if (Array.isArray(r.children)) {
+          const matchedChild = r.children.find(c => String(c.route) === childSeg)
+          if (matchedChild) {
+            return svcNormalize(matchedChild.component)
+          }
+        }
+        return ''
+      }
+    }
+  } catch {}
+  return ''
+}
 </script>
 
 <style scoped>
 /* 路由设置面板容器样式：左侧固定宽度，与面板宽度一致 */
-.route-settings-wrapper {
-  width: 360px;
-  flex: 0 0 360px; /* 固定宽度，不参与收缩 */
-  height: 100vh;
-  border-right: 1px solid #e5e7eb; /* gray-200 */
-  background: #ffffff;
-  z-index: 101; /* 高于侧边栏基础层级 */
-}
-/* 应用设置面板容器样式：左侧固定宽度，与面板宽度一致 */
-.app-settings-wrapper {
-  width: 360px;
-  flex: 0 0 360px; /* 固定宽度，不参与收缩 */
-  height: 100vh;
-  border-right: 1px solid #e5e7eb; /* gray-200 */
-  background: #ffffff;
-  z-index: 101; /* 高于侧边栏基础层级 */
-}
-/* 主题设置面板容器样式：左侧固定宽度，与面板宽度一致 */
-.theme-settings-wrapper {
-  width: 360px;
-  flex: 0 0 360px; /* 固定宽度，不参与收缩 */
-  height: 100vh;
-  border-right: 1px solid #e5e7eb; /* gray-200 */
-  background: #ffffff;
-  z-index: 101; /* 高于侧边栏基础层级 */
-}
-/* 图标设置面板容器样式：左侧固定宽度，与面板宽度一致 */
-.icon-settings-wrapper {
+.settings-wrapper {
   width: 360px;
   flex: 0 0 360px; /* 固定宽度，不参与收缩 */
   height: 100vh;

@@ -45,12 +45,6 @@ import DefaultContainer from '@/components/layout/pagecontainer/DefaultContainer
  * 使用FixedSizeContainer提供固定尺寸容器，指定深色商务主题
  * 展示AI-MIS市场情报分析报告的标题和基本信息
  */
-defineOptions({
-  name: 'HomePage'
-})
-
-// 全局主题管理
-
 
 
 // 使用主题系统获取反色Logo
@@ -74,7 +68,6 @@ onMounted(() => {
 <style scoped>
 /* 背景图片样式说明:
  * @apply absolute inset-0: 绝对定位并占满父容器(top:0, right:0, bottom:0, left:0)
- * w-full h-full: 宽度和高度设置为100%
  * background-image: 设置背景图片路径
  * background-size: cover 确保背景图片覆盖整个容器
  * background-position: center 背景图片居中显示
@@ -109,9 +102,4 @@ onMounted(() => {
   aspect-ratio: auto;
 }
 
-
-
 </style>
-
-
-

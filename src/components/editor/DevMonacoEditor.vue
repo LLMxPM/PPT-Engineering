@@ -129,6 +129,34 @@ function applyEditorOptions() {
   editor?.updateOptions({ readOnly: props.readOnly, lineNumbers: props.lineNumbers, minimap: { enabled: props.minimap } })
 }
 
+/**
+ * 公开方法：定位到指定行列并置中显示
+ * @param line 行号（从1开始）
+ * @param column 列号（默认1）
+ */
+function revealPosition(line: number, column: number = 1) {
+  if (!editor) return
+  editor.revealPositionInCenter({ lineNumber: line, column })
+  editor.setPosition({ lineNumber: line, column })
+  editor.focus()
+}
+
+/**
+ * 公开方法：选中指定范围
+ * @param startLine 起始行
+ * @param startColumn 起始列
+ * @param endLine 结束行
+ * @param endColumn 结束列
+ */
+function setSelection(startLine: number, startColumn: number, endLine: number, endColumn: number) {
+  if (!editor) return
+  editor.setSelection({ startLineNumber: startLine, startColumn, endLineNumber: endLine, endColumn })
+  editor.revealRangeInCenter({ startLineNumber: startLine, startColumn, endLineNumber: endLine, endColumn })
+  editor.focus()
+}
+
+defineExpose({ revealPosition, setSelection })
+
 onMounted(async () => {
   if (!import.meta.env.DEV) return
   await nextTick()

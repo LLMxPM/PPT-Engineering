@@ -8,7 +8,7 @@
 <template>
   <!-- Teleport 到 body，固定布局在右上角 -->
   <teleport to="body">
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[var(--z-toast)] w-[360px] space-y-2">
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[var(--z-toast)] w-[420px] space-y-2">
       <transition-group name="toast-fade" tag="div">
         <div
           v-for="t in store.list"
@@ -17,7 +17,7 @@
           :class="toastClass(t.type)"
         >
           <div class="flex-1 min-w-0">
-            <p class="text-[14px] truncate" :class="textClass(t.type)">{{ t.message }}</p>
+            <p class="text-[12px] truncate" :class="textClass(t.type)">{{ t.message }}</p>
           </div>
           <button
             class="shrink-0 text-gray-500 hover:text-gray-700 transition-colors"

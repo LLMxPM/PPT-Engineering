@@ -1,7 +1,7 @@
 <!--
   文档用途：页面视图资源管理面板（复用通用资源管理组件）
   主要功能：
-    1. 使用通用 ResourceManagerPanel 管理 src/views 目录下的 .vue 文件
+    1. 使用通用 FileManagerPanel 管理 src/views 目录下的 .vue 文件
     2. 从 YAML 路由配置生成视图到路由路径与标题的映射
     3. 支持基于路由的页面预览与本地组件预览，以及删除文件
   技术栈：Vue@3 + TypeScript@5 + Tailwind CSS@3
@@ -10,7 +10,7 @@
 <template>
   <div class="space-y-3 h-full">
     <div class="h-full overflow-y-auto">
-      <ResourceManagerPanel
+      <FileManagerPanel
         ref="resPanel"
         root="src/views"
         :accept="'.vue'"
@@ -38,12 +38,11 @@
                 >
                   未配置路由
                 </div>
-                <div
-                  class="text-[11px] text-gray-500 truncate ml-2"
-                  :title="getRouteInfo(item.path)?.routePath"
-                >
-                  {{ getRouteInfo(item.path)?.routePath }}
-                </div>
+                                <button
+                  @click="selectComponentPath(item.path)"
+                  class="  text-[12px] rounded  text-indigo-600 hover:text-indigo-900"
+                >复制路径/选择组件</button>
+
               </div>
               <!-- 文件名称与复制路径按钮一行，名称在左，按钮在右 -->
               <div class="mt-1 flex items-center justify-between">
@@ -53,21 +52,20 @@
                 >
                   {{ item.name }}
                 </div>
-                <button
-                  @click="selectComponentPath(item.path)"
-                  class="  text-[12px] rounded  text-indigo-600 hover:text-indigo-900"
-                >复制路径/选择组件</button>
+                <div
+                  class="text-[11px] text-gray-500 truncate ml-2"
+                  :title="getRouteInfo(item.path)?.routePath"
+                >
+                  {{ getRouteInfo(item.path)?.routePath }}
+                </div>
               </div>
             </div>
             <div class="px-3 pt-2">
               <div
                 class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden"
                 style="aspect-ratio: 16 / 9;"
-                :ref="el => setListPreviewRef(item.path, el)"
               >
-                <FixedRatioContainer :isFullscreen="false" :scale="getListPreviewScale(item.path)">
-                  <component :is="createAsyncViewByFilePath(item.path)" />
-                </FixedRatioContainer>
+                <ViewPreview :filePath="item.path" />
               </div>
             </div>
             <div class="flex gap-1 px-3 pb-3 pt-2">
@@ -75,6 +73,10 @@
                 @click="openPreviewModal({ path: item.path })"
                 class="px-1 py-1 text-[12px] rounded bg-blue-600 text-white hover:bg-blue-700"
               >预览</button>
+              <button
+                @click="openEditModal({ path: item.path })"
+                class="px-1 py-1 text-[12px] rounded bg-purple-600 text-white hover:bg-purple-700"
+              >编辑</button>
               <button
                 @click="downloadView(item)"
                 class="px-1 py-1 text-[12px] rounded bg-indigo-600 text-white hover:bg-indigo-700"
@@ -87,7 +89,18 @@
             </div>
           </div>
         </template>
-      </ResourceManagerPanel>
+      </FileManagerPanel>
+
+      <EditorModal 
+        v-model:visible="isEditModalVisible" 
+        title="编辑页面" 
+        :widthVw="95" 
+        :heightVh="95" 
+        :showFooter="false" 
+        :zIndex="1100"
+      >
+        <SplitEditorPreview :filePath="editPath" />
+      </EditorModal>
 
       <div v-if="previewModalVisible" class="fixed inset-0 z-50">
         <div class="absolute inset-0 bg-black/30" @click="closePreviewModal"></div>
@@ -98,12 +111,7 @@
               class="absolute top-3 right-3 px-2 h-7 text-[12px] bg-gray-100 text-gray-700 hover:bg-gray-200 rounded"
             >关闭</button>
             <div class="w-full h-full flex items-center justify-center">
-              <FixedRatioContainer
-                :isFullscreen="false"
-                :scale="modalScaleRatio"
-              >
-                <component :is="previewComp" />
-              </FixedRatioContainer>
+              <ViewPreview :filePath="previewPath" />
             </div>
           </div>
         </div>
@@ -143,23 +151,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, defineAsyncComponent, ComponentPublicInstance } from 'vue'
-import FixedRatioContainer from '@/layouts/FixedRatioContainer.vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { fileManagerService } from '@/core/services/FileManagerService'
-import ResourceManagerPanel from './ResourceManagerPanel.vue'
+import FileManagerPanel from './FileManagerPanel.vue'
 import RouteEditorModal from '../RouteEditorModal.vue'
 import AddViewModal from './AddViewModal.vue'
 import { buildViewRouteInfoMap as svcBuildMap, normalizeViewComponentPath as svcNormalize, findEntryByComponent, upsertRouteEntry, deleteTopRoute, deleteChildRoute } from '@/core/services/RouteConfigService'
 import ConfirmModal from '@/components/editor/ConfirmModal.vue'
+import ViewPreview from '@/components/editor/ViewPreview.vue'
+import SplitEditorPreview from '@/components/editor/SplitEditorPreview.vue'
+import EditorModal from '@/components/editor/EditorModal.vue'
 
 interface Emits { (e: 'close'): void; (e: 'select', component: string): void }
 const emit = defineEmits<Emits>()
 
 const previewModalVisible = ref<boolean>(false)
-const previewComp = ref<any | null>(null)
+const previewPath = ref<string>('')
+const isEditModalVisible = ref<boolean>(false)
+const editPath = ref<string>('')
 const routeInfoMap = ref<Record<string, { routePath: string; routeTitle: string }>>({})
-const listPreviewRefs = ref<Record<string, HTMLElement | null>>({})
-const listPreviewScaleMap = ref<Record<string, number>>({})
 
 const routeEditorVisible = ref<boolean>(false)
 const routeEditorHeader = ref<string>('配置路由')
@@ -174,34 +184,60 @@ const confirm = ref<{ visible: boolean; title: string; message: string; onOk?: (
 const DESIGN_WIDTH = 1920
 const DESIGN_HEIGHT = 1080
 
-const screenWidth = ref<number>(window.innerWidth)
-const screenHeight = ref<number>(window.innerHeight)
-
-/**
- * 更新窗口尺寸状态
- */
-function handleResize(): void {
-  screenWidth.value = window.innerWidth
-  screenHeight.value = window.innerHeight
-  recomputeAllListPreviewScales()
-}
-
-/**
- * 计算弹窗预览缩放比例
- */
-const modalScaleRatio = computed<number>(() => {
-  const availableWidth = screenWidth.value * 0.95
-  const availableHeight = screenHeight.value * 0.95
-  const scaleX = availableWidth / DESIGN_WIDTH
-  const scaleY = availableHeight / DESIGN_HEIGHT
-  return Math.min(scaleX, scaleY, 3)
-})
-
 /**
  * 将 '@/views/xxx.vue' 规范化为实际文件路径 'src/views/xxx.vue'
  */
 function normalizeViewComponentPath(component: string): string {
   return svcNormalize(component)
+}
+
+/**
+ * 持久化面板内部状态以便在 Vite 全量重载后自动恢复
+ */
+const HMR_RESTORE_KEY = 'view-resource-panel:last'
+function persistPanelState(): void {
+  try {
+    const payload = {
+      preview: { visible: !!previewModalVisible.value, path: previewPath.value },
+      routeEditor: {
+        visible: !!routeEditorVisible.value,
+        mode: routeEditorMode.value,
+        type: routeEditorType.value,
+        form: routeEditorForm.value,
+        parent: routeEditorParentRoute.value,
+        header: routeEditorHeader.value
+      }
+    }
+    sessionStorage.setItem(HMR_RESTORE_KEY, JSON.stringify(payload))
+  } catch {}
+}
+function restorePanelStateIfNeeded(): void {
+  try {
+    const raw = sessionStorage.getItem(HMR_RESTORE_KEY)
+    if (!raw) return
+    sessionStorage.removeItem(HMR_RESTORE_KEY)
+    const data = JSON.parse(raw || '{}')
+    if (data?.preview?.visible && data?.preview?.path) {
+      previewPath.value = String(data.preview.path || '')
+      previewModalVisible.value = true
+    }
+    if (data?.routeEditor?.visible) {
+      routeEditorHeader.value = String(data.routeEditor.header || routeEditorHeader.value)
+      routeEditorMode.value = data.routeEditor.mode === 'edit' ? 'edit' : 'add'
+      routeEditorType.value = data.routeEditor.type === 'child' ? 'child' : 'route'
+      routeEditorForm.value = {
+        route: String(data.routeEditor?.form?.route || ''),
+        component: String(data.routeEditor?.form?.component || ''),
+        meta: {
+          title: String(data.routeEditor?.form?.meta?.title || ''),
+          icon: String(data.routeEditor?.form?.meta?.icon || ''),
+          order: Number(data.routeEditor?.form?.meta?.order ?? 0)
+        }
+      }
+      routeEditorParentRoute.value = String(data.routeEditor?.parent || '')
+      routeEditorVisible.value = true
+    }
+  } catch {}
 }
 
 /**
@@ -219,52 +255,7 @@ function getRouteInfo(filePath: string): { routePath: string; routeTitle: string
   return routeInfoMap.value[key]
 }
 
-/**
- * 列表项预览始终可见（移除切换逻辑）
- */
-
-/**
- * 记录列表预览容器引用
- */
-function setListPreviewRef(path: string, el: Element | ComponentPublicInstance | null): void {
-  const key = path.replace(/\\/g, '/')
-  let dom: HTMLElement | null = null
-  if (el instanceof HTMLElement) dom = el
-  else if (el && (el as any).$el instanceof HTMLElement) dom = (el as any).$el as HTMLElement
-  listPreviewRefs.value[key] = dom
-  if (dom) computeListPreviewScale(key)
-}
-
-/**
- * 计算单个列表预览的缩放
- */
-function computeListPreviewScale(pathKey: string): void {
-  const el = listPreviewRefs.value[pathKey]
-  if (!el) return
-  const availableWidth = el.clientWidth
-  const availableHeight = el.clientHeight
-  const scaleX = availableWidth / DESIGN_WIDTH
-  const scaleY = availableHeight / DESIGN_HEIGHT
-  listPreviewScaleMap.value[pathKey] = Math.min(scaleX, scaleY, 3)
-}
-
-/**
- * 重新计算所有可见列表预览缩放
- */
-function recomputeAllListPreviewScales(): void {
-  Object.keys(listPreviewRefs.value)
-    .forEach(k => computeListPreviewScale(k))
-}
-
-/**
- * 获取列表预览缩放，默认按容器高度回退
- */
-function getListPreviewScale(path: string): number {
-  const key = path.replace(/\\/g, '/')
-  const s = listPreviewScaleMap.value[key]
-  if (typeof s === 'number') return s
-  return (270 / DESIGN_HEIGHT)
-}
+/** 列表项预览缩放逻辑已交由 ViewPreview 组件内部处理 */
 
 /**
  * 打开路由编辑模态框
@@ -343,30 +334,24 @@ async function saveRouteEditor(): Promise<void> {
  * @param filePath 视图文件的实际路径，如 'src/views/xxx.vue'
  * @returns 可用于 <component :is="..."> 的异步组件
  */
-function createAsyncViewByFilePath(filePath: string) {
-  const modules = import.meta.glob('@/views/**/*.vue')
-  const normalized = filePath.replace(/^src\//, '')
-  const atPath = `@/${normalized}`
-  let loader = modules[atPath]
-  if (!loader) {
-    const keys = Object.keys(modules)
-    const fileName = atPath.split('/').pop()
-    const match = keys.find(k => k.split('/').pop() === fileName)
-    loader = match ? modules[match] : undefined
-  }
-  if (!loader) return null
-  return defineAsyncComponent(loader)
-}
+/** 异步视图组件创建逻辑已抽取到 ViewPreview 组件 */
 
 /**
  * 打开预览弹窗（使用固定比例缩放容器）
  * @param v 视图列表项
  */
 function openPreviewModal(v: { path: string }): void {
-  const comp = createAsyncViewByFilePath(v.path)
-  if (!comp) return
-  previewComp.value = comp
+  previewPath.value = v.path
   previewModalVisible.value = true
+}
+
+/**
+ * 打开编辑弹窗（使用 SplitEditorPreview 编辑并预览）
+ * @param v 视图列表项
+ */
+function openEditModal(v: { path: string }): void {
+  editPath.value = v.path
+  isEditModalVisible.value = true
 }
 
 /**
@@ -374,7 +359,15 @@ function openPreviewModal(v: { path: string }): void {
  */
 function closePreviewModal(): void {
   previewModalVisible.value = false
-  previewComp.value = null
+  previewPath.value = ''
+}
+
+/**
+ * 关闭编辑弹窗
+ */
+function closeEditModal(): void {
+  isEditModalVisible.value = false
+  editPath.value = ''
 }
 
 /**
@@ -430,12 +423,28 @@ function getSelectedDir(): string {
  */
 onMounted(async () => {
   routeInfoMap.value = await buildViewRouteInfoMap()
-  handleResize()
-  window.addEventListener('resize', handleResize)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
+onUnmounted(() => {})
+
+/**
+ * 监听 HMR 与页面刷新，保存并在重载后恢复面板状态
+ */
+onMounted(() => {
+  restorePanelStateIfNeeded()
+  const beforeUnload = () => persistPanelState()
+  window.addEventListener('beforeunload', beforeUnload)
+  if ((import.meta as any).hot) {
+    ;(import.meta as any).hot.on?.('vite:beforeUpdate', persistPanelState)
+    ;(import.meta as any).hot.on?.('vite:full-reload', persistPanelState)
+  }
+  onUnmounted(() => {
+    window.removeEventListener('beforeunload', beforeUnload)
+    if ( (import.meta as any).hot) {
+      ;(import.meta as any).hot.off?.('vite:beforeUpdate', persistPanelState)
+      ;(import.meta as any).hot.off?.('vite:full-reload', persistPanelState)
+    }
+  })
 })
 
 /**

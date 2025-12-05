@@ -1,11 +1,11 @@
 <!--
   文件用途：插图资源面板（引用通用资源管理组件）
-  主要功能：使用 ResourceManagerPanel 管理 public/img/illus 下的图片目录及文件
+  主要功能：使用 FileManagerPanel 管理 public/img/illus 下的图片目录及文件
   技术栈：Vue@3 + TypeScript@5 + Tailwind CSS@3
 -->
 
 <template>
-  <ResourceManagerPanel
+  <FileManagerPanel
     ref="panelRef"
     root="public/img/illus"
     accept="image/*"
@@ -31,7 +31,7 @@
         
       </div>
     </template>
-  </ResourceManagerPanel>
+  </FileManagerPanel>
 
   <!-- 预览弹窗：展示大图与复制引用代码 -->
   <EditorModal
@@ -86,7 +86,7 @@
  * 技术栈：Vue@3 + TypeScript@5 + Tailwind CSS@3
  */
 import { ref } from 'vue'
-import ResourceManagerPanel from '@/layouts/SettingModule/ResourceManger/ResourceManagerPanel.vue'
+import FileManagerPanel from '@/layouts/SettingModule/ResourceManger/FileManagerPanel.vue'
 import { fileManagerService } from '@/core/services/FileManagerService'
 import { resolveResourcePath } from '@/core/utils/path'
 import AppIcon from '@/components/common/AppIcon.vue'
