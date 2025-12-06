@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
+import Icon from '@/components/layout/contentcommon/Icon.vue'
+</script>
+
 <template>
   <DefaultContentPage title="配置系统" subtitle="灵活的YAML配置驱动架构">
     <template #content>
@@ -19,7 +24,7 @@
 
         <!-- 应用配置 -->
         <div class="flex items-center mb-6 mt-8">
-          <Icon name="App" :size="32" color="text-primary" />
+          <Icon name="Package" :size="32" color="text-primary" />
           <h2 class="font-heading text-3xl font-bold text-primary ml-4">应用配置 (app.config.yaml)</h2>
         </div>
         
@@ -61,7 +66,7 @@
 
         <!-- 路由配置 -->
         <div class="flex items-center mb-6 mt-8">
-          <Icon name="Route" :size="32" color="text-primary" />
+          <Icon name="路由-copy" :size="32" color="text-primary" />
           <h2 class="font-heading text-3xl font-bold text-primary ml-4">路由配置 (routes.config.yaml)</h2>
         </div>
         
@@ -186,14 +191,14 @@
               </div>
             </li>
             <li class="flex items-start">
-              <Icon name="RefreshCw" :size="24" color="text-accent2" />
+              <Icon name="刷新" :size="24" color="text-accent1" />
               <div class="ml-4">
                 <h3 class="font-heading text-lg font-semibold text-primary">热重载支持</h3>
                 <p class="font-body text-secondary">配置文件修改后自动重载，实时预览效果</p>
               </div>
             </li>
             <li class="flex items-start">
-              <Icon name="GitBranch" :size="24" color="text-accent3" />
+              <Icon name="GitBranch" :size="24" color="text-accent1" />
               <div class="ml-4">
                 <h3 class="font-heading text-lg font-semibold text-primary">版本控制友好</h3>
                 <p class="font-body text-secondary">YAML格式易于版本控制和团队协作</p>
@@ -206,11 +211,3 @@
   </DefaultContentPage>
 </template>
 
-<script setup lang="ts">
-import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContentPage.vue'
-import Icon from '@/components/layout/contentcommon/Icon.vue'
-
-defineOptions({
-  name: 'ConfigurationSystem'
-})
-</script>

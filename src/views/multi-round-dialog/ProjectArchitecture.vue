@@ -100,7 +100,4 @@ import DefaultContentPage from '@/components/layout/pagecontainer/DefaultContent
 import Icon from '@/components/layout/contentcommon/Icon.vue'
 import DrawioChart from '@/components/layout/contentcommon/DrawioChart.vue'
 
-defineOptions({
-  name: 'ProjectArchitecture'
-})
 </script>

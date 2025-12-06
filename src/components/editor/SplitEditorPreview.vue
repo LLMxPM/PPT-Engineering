@@ -11,6 +11,8 @@
           class="px-2 py-1 text-[12px] rounded bg-emerald-600 text-white hover:bg-emerald-700">保存</button>
         <button @click="refreshPreview"
           class="px-2 py-1 text-[12px] rounded bg-blue-600 text-white hover:bg-blue-700">刷新预览</button>
+        <button @click="openIconPicker"
+          class="px-2 py-1 text-[12px] rounded bg-indigo-600 text-white hover:bg-indigo-700">选择图标</button>
 
         <label class="flex items-center gap-1 text-[12px] text-gray-600">
           <input type="checkbox" v-model="isDark" /> 暗黑模式</label>
@@ -54,6 +56,24 @@
         </div>
       </div>
     </div>
+    <EditorModal
+      :visible="iconPickerVisible"
+      title="选择图标"
+      :widthVw="60"
+      :heightVh="70"
+      :zIndex="1200"
+      :showFooter="false"
+      :closeOnEsc="false"
+      :closeOnOverlay="true"
+      @update:visible="v => (iconPickerVisible = v)"
+      @ok="handleIconOk"
+      @cancel="handleIconCancel"
+    >
+      <IconPicker
+        v-model="pickedIconName"
+        @select="handleIconSelect"
+      />
+    </EditorModal>
   </div>
 </template>
 
@@ -61,6 +81,8 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import DevMonacoEditor from './DevMonacoEditor.vue'
 import ViewPreview from '@/components/editor/ViewPreview.vue'
+import EditorModal from '@/components/editor/EditorModal.vue'
+import IconPicker from '@/components/editor/IconPicker.vue'
 import { fileManagerService } from '@/core/services/FileManagerService'
 import { normalizeViewComponentPath as svcNormalize } from '@/core/services/RouteConfigService'
 import { toast } from '@/core/composables/useToast'
@@ -116,6 +138,16 @@ const isDark = ref<boolean>(true)
 const THEME_KEY = 'SplitEditorPreview.editorTheme'
 const inspectMode = ref<boolean>(true)
 const INSPECT_KEY = 'SplitEditorPreview.inspectMode'
+
+/**
+ * 图标选择弹窗可见性
+ */
+const iconPickerVisible = ref<boolean>(false)
+
+/**
+ * 当前选择的图标名称
+ */
+const pickedIconName = ref<string | null>(null)
 
 /**
  * 函数：规范化输入路径到 'src/...'
@@ -221,6 +253,34 @@ function handleEditorChange(_val: string): void {
  */
 function jumpTo(line: number, column?: number): void {
   editorRef.value?.revealPosition(line, column ?? 1)
+}
+
+/**
+ * 打开图标选择弹窗
+ */
+function openIconPicker(): void {
+  iconPickerVisible.value = true
+}
+
+/**
+ * 图标选择确认
+ */
+async function handleIconOk(): Promise<void> {
+  iconPickerVisible.value = false
+}
+
+/**
+ * 图标选择取消
+ */
+function handleIconCancel(): void {
+  iconPickerVisible.value = false
+}
+
+/**
+ * 处理图标选择事件
+ */
+function handleIconSelect(payload: { name: string; type: 'lucide' | 'static'; src?: string }): void {
+  pickedIconName.value = payload.name
 }
 
 /**

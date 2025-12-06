@@ -113,9 +113,6 @@ const getImagePath = (round: number, index: number): string => {
   return resolveResourcePath(`img/插图/多轮对话章节/${round}-${index}.png`)
 }
 
-defineOptions({
-  name: 'DialogScreenshots'
-})
 </script>
 
 <style scoped>

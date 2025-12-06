@@ -127,6 +127,10 @@ static_icons:
     src: /img/icon/手电筒.svg
   - name: 扫描
     src: /img/icon/扫描.svg
+  - name: 路由-copy
+    src: /img/icon/路由-copy.svg
+  - name: 刷新
+    src: /img/icon/刷新.svg
 config:
   default_size: 20
   default_stroke_width: 2
