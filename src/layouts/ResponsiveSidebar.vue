@@ -41,25 +41,27 @@
                 <div class="relative" @mouseenter="isCollapsed ? showHoverMenu(item.path, $event) : null"
                   @mouseleave="isCollapsed ? hideHoverMenu() : null">
                   <div
-                    class="flex items-center py-3 px-4 text-gray-500 no-underline rounded-xl transition-all duration-200 relative mx-2 font-medium cursor-pointer"
+                    class="flex items-center text-gray-500 no-underline rounded-xl transition-all duration-200 relative mx-2 cursor-pointer"
                     :class="[
-                      isActiveRoute(item.path)
-                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50 hover:bg-blue-600 hover:text-white' + (isCollapsed ? '' : ' hover:translate-x-1')
-                        : hasActiveChildRoute(item)
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300' + (isCollapsed ? '' : ' hover:translate-x-1')
-                          : 'hover:bg-gray-100 hover:text-gray-700' + (isCollapsed ? ' hover:scale-110' : ' hover:translate-x-1'),
-                      isCollapsed ? 'justify-center p-3 mx-2' : ''
+                      isPreviewMode
+                        ? (hasActiveChildRoute(item) ? 'text-blue-600 font-bold text-xs py-2 px-4 uppercase tracking-wider' : 'text-gray-400 font-bold text-xs py-2 px-4 uppercase tracking-wider hover:text-gray-600')
+                        : 'py-3 px-4 font-medium ' + (isActiveRoute(item.path)
+                          ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50 hover:bg-blue-600 hover:text-white' + (isCollapsed ? '' : ' hover:translate-x-1')
+                          : hasActiveChildRoute(item)
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold hover:bg-blue-50 hover:text-blue-800 hover:border-blue-300' + (isCollapsed ? '' : ' hover:translate-x-1')
+                            : 'hover:bg-gray-100 hover:text-gray-700' + (isCollapsed ? ' hover:scale-110' : ' hover:translate-x-1')),
+                      isCollapsed ? (isPreviewMode ? 'justify-center p-2 mx-2' : 'justify-center p-3 mx-2') : ''
                     ]" @click="handleNavClick(item)">
                     <div class="flex items-center justify-center flex-shrink-0" :class="isCollapsed ? 'mr-0' : 'mr-3'">
                       <Icon v-if="item.icon" :name="item.icon" class="flex-shrink-0 transition-all duration-200"
-                        :size="20" />
+                        :size="isPreviewMode ? 14 : 20" />
                     </div>
                     <span v-if="!isCollapsed" class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
                       {{ item.title }}
                     </span>
                     <ChevronDown v-if="!isCollapsed && item.children.length > 0"
                       class="ml-auto transition-transform duration-300 flex-shrink-0"
-                      :class="isMenuExpanded(item.path) ? 'rotate-180' : ''" :size="16" />
+                      :class="isMenuExpanded(item.path) ? 'rotate-180' : ''" :size="isPreviewMode ? 14 : 16" />
                   </div>
 
                   <Teleport to="body">
@@ -92,8 +94,9 @@
                   <ul v-if="isMenuExpanded(item.path) && !isCollapsed"
                     class="list-none mt-2 mb-0 mx-0 p-1 py-0 bg-gray-50 rounded-xl overflow-hidden">
                     <li v-for="child in item.children" :key="child.path" class="m-0">
-                      <div @mouseenter="isPreviewMode ? showSimpleTooltip(child.title, $event) : null"
-                        @mouseleave="isPreviewMode ? hideSimpleTooltip() : null">
+                      <div
+                        @mouseenter="isPreviewMode ? showSimpleTooltip(child.title, $event) : showPreviewTooltip(child, $event)"
+                        @mouseleave="isPreviewMode ? hideSimpleTooltip() : hidePreviewTooltip()">
                         <router-link :to="child.path"
                           class="flex items-center text-gray-500 no-underline rounded-lg text-[14px] transition-all duration-200"
                           :class="[
@@ -120,8 +123,9 @@
                 </transition>
               </div>
 
-              <div v-else @mouseenter="(isCollapsed || isPreviewMode) ? showSimpleTooltip(item.title, $event) : null"
-                @mouseleave="(isCollapsed || isPreviewMode) ? hideSimpleTooltip() : null">
+              <div v-else
+                @mouseenter="(isCollapsed || isPreviewMode) ? showSimpleTooltip(item.title, $event) : showPreviewTooltip(item, $event)"
+                @mouseleave="(isCollapsed || isPreviewMode) ? hideSimpleTooltip() : hidePreviewTooltip()">
                 <router-link :to="item.path"
                   class="flex items-center text-gray-500 no-underline rounded-xl transition-all duration-200 relative mx-2 font-medium"
                   :class="[
@@ -180,6 +184,23 @@
         <div
           class="bg-gray-800 text-white py-2 px-3 rounded-lg text-[14px] whitespace-nowrap shadow-lg border border-white/10 -translate-y-1/2 relative before:content-[''] before:absolute before:top-1/2 before:left-[-5px] before:-translate-y-1/2 before:w-0 before:h-0 before:border-[5px] before:border-solid before:border-transparent before:border-r-gray-800">
           {{ simpleTooltipText }}
+        </div>
+      </div>
+
+      <div v-if="previewTooltipVisible && previewTooltipItem?.meta?.componentPath"
+        class="pointer-events-none animate-[tooltipFadeIn_0.2s_cubic-bezier(0.4,0,0.2,1)]" :style="{
+          position: 'fixed',
+          top: previewTooltipPosition.top + 'px',
+          left: previewTooltipPosition.left + 'px',
+          zIndex: 9998
+        }">
+        <div
+          class="bg-white p-2 rounded-xl shadow-xl border border-gray-200 -translate-y-1/2 relative before:content-[''] before:absolute before:top-1/2 before:left-[-6px] before:-translate-y-1/2 before:w-0 before:h-0 before:border-[6px] before:border-solid before:border-transparent before:border-r-gray-200 after:content-[''] after:absolute after:top-1/2 after:left-[-5px] after:-translate-y-1/2 after:w-0 after:h-0 after:border-[5px] after:border-solid after:border-transparent after:border-r-white w-64 aspect-[4/3] flex flex-col">
+          <div class="text-xs font-medium text-gray-500 mb-1 px-1 whitespace-nowrap overflow-hidden text-ellipsis">{{
+            previewTooltipItem.title }}</div>
+          <div class="flex-1 w-full rounded overflow-hidden relative bg-gray-50 border border-gray-100">
+            <ViewPreview :file-path="previewTooltipItem.meta.componentPath" />
+          </div>
         </div>
       </div>
     </Teleport>
@@ -262,6 +283,11 @@ const simpleTooltipVisible = ref(false)
 const simpleTooltipText = ref('')
 const simpleTooltipPosition = ref({ top: 0, left: 0 })
 const simpleTooltipTimer = ref<number | null>(null)
+
+const previewTooltipVisible = ref(false)
+const previewTooltipItem = ref<MenuItem | null>(null)
+const previewTooltipPosition = ref({ top: 0, left: 0 })
+const previewTooltipTimer = ref<number | null>(null)
 
 // 设置菜单相关状态
 const settingsMenuVisible = ref(false)
@@ -471,6 +497,60 @@ const hideSimpleTooltip = (): void => {
 }
 
 /**
+ * 显示预览tooltip
+ */
+const showPreviewTooltip = (item: MenuItem, event: MouseEvent): void => {
+  if (!item.meta?.componentPath) return
+
+  if (previewTooltipTimer.value) {
+    clearTimeout(previewTooltipTimer.value)
+    previewTooltipTimer.value = null
+  }
+
+  const target = event.currentTarget as HTMLElement
+  const rect = target.getBoundingClientRect()
+
+  const tooltipLeft = rect.right + 12
+  const tooltipTop = rect.top + rect.height / 2
+
+  const tooltipWidth = 270
+  const viewportWidth = window.innerWidth
+
+  let finalLeft = tooltipLeft
+  if (tooltipLeft + tooltipWidth > viewportWidth) {
+    finalLeft = rect.left - tooltipWidth - 12
+  }
+
+  const viewportHeight = window.innerHeight
+  let finalTop = tooltipTop
+
+  const tooltipHeight = 160 // aspect-[4/3] (192 * 3/4 = 144) + title height
+  if (tooltipTop - tooltipHeight / 2 < 20) {
+    finalTop = 20 + tooltipHeight / 2
+  } else if (tooltipTop + tooltipHeight / 2 > viewportHeight - 20) {
+    finalTop = viewportHeight - 20 - tooltipHeight / 2
+  }
+
+  previewTooltipPosition.value = {
+    top: finalTop,
+    left: Math.max(12, finalLeft)
+  }
+
+  previewTooltipItem.value = item
+  previewTooltipVisible.value = true
+}
+
+/**
+ * 隐藏预览tooltip
+ */
+const hidePreviewTooltip = (): void => {
+  previewTooltipTimer.value = window.setTimeout(() => {
+    previewTooltipVisible.value = false
+    previewTooltipItem.value = null
+  }, 100)
+}
+
+/**
  * 自动展开包含当前路由的菜单
  */
 const autoExpandCurrentRoute = (): void => {
@@ -627,6 +707,9 @@ onUnmounted(() => {
   }
   if (settingsMenuTimer.value) {
     clearTimeout(settingsMenuTimer.value)
+  }
+  if (previewTooltipTimer.value) {
+    clearTimeout(previewTooltipTimer.value)
   }
 })
 </script>

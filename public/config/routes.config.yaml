@@ -129,12 +129,6 @@ routes:
         meta:
           title: 对话截图展示
           order: 3
-  - route: test00
-    component: '@/views/23333333/NewP44444age.vue'
-    meta:
-      title: 测试多级目录
-      icon: Bug
-      order: 6
   - route: endpage
     component: '@/views/defaultpage/EndPage.vue'
     meta:

@@ -6,4 +6,4 @@ app:
   baseUrl: /ppt-engineering/
   features:
     showPdfExportButton: true
-    menuMode: preview
+    menuMode: text
