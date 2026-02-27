@@ -9,9 +9,9 @@ import type { RouteConfig, NavigationItem, BaseRouteConfig } from '@/core/types'
 import type { MenuItem, MenuConfig } from '@/core/types/menu'
 import { routeConfigs } from '@/core/utils/config'
 import { buildFullPath } from './path'
-import { 
-  buildRelativePath, 
-  buildRouteFullPath 
+import {
+  buildRelativePath,
+  buildRouteFullPath
 } from './route-path-builder'
 
 // ==================== 辅助函数 ====================
@@ -83,15 +83,32 @@ export function generateRoutes(
   const flattenedRoutes: RouteRecordRaw[] = []
 
   configs.forEach(config => {
-    // 添加父路由
-    flattenedRoutes.push(convertToRouteRecord(config, true))
+    const hasChildren = config.children && config.children.length > 0
 
-    // 添加子路由（作为独立路由）
-    if (config.children && config.children.length > 0) {
-      config.children.forEach(child => {
+    if (hasChildren) {
+      // 有子路由时，父路由只是分组，生成重定向路由到第一个可见子路由
+      const visibleChildren = config.children!.filter(child => !child.meta?.hidden)
+      const sortedChildren = [...visibleChildren].sort((a, b) => (a.meta?.order ?? 999) - (b.meta?.order ?? 999))
+      const firstChild = sortedChildren[0]
+
+      if (firstChild) {
+        // 父路由重定向到第一个子路由
+        const parentPath = config.path.startsWith('/') ? config.path : `/${config.path}`
+        flattenedRoutes.push({
+          path: parentPath,
+          redirect: `${parentPath}/${firstChild.path}`,
+          meta: config.meta as any
+        } as RouteRecordRaw)
+      }
+
+      // 添加子路由（作为独立路由）
+      config.children!.forEach(child => {
         const childRoute = convertToRouteRecord(child, false, config.path)
         flattenedRoutes.push(childRoute)
       })
+    } else {
+      // 没有子路由时，正常注册为独立页面
+      flattenedRoutes.push(convertToRouteRecord(config, true))
     }
   })
 
@@ -105,7 +122,7 @@ export function generateRoutes(
  * @param parentPath 父路由路径（仅用于子路由）
  */
 function convertToRouteRecord(
-  config: RouteConfig | BaseRouteConfig, 
+  config: RouteConfig | BaseRouteConfig,
   isParent: boolean = true,
   parentPath?: string
 ): RouteRecordRaw {
@@ -118,7 +135,7 @@ function convertToRouteRecord(
     // 子路由使用完整路径 '/父路径/子路径' 的格式
     routePath = `/${parentPath}/${config.path}`
   }
-  
+
   const route: RouteRecordRaw = {
     path: routePath,
     name: 'name' in config ? config.name : config.title,
@@ -186,14 +203,14 @@ function convertToNavigationItem(config: RouteConfig | BaseRouteConfig, parentPa
   console.log('=== convertToNavigationItem 开始 ===')
   console.log('路由配置:', config)
   console.log('父级路径:', parentPath)
-  
+
   // 使用统一的路径构建工具
   const relativePath = buildRelativePath(config, parentPath)
   const fullPath = buildRouteFullPath(config, parentPath)
-  
+
   const configName = 'name' in config ? config.name : config.title
   const configTitle = config.meta?.title || config.title || configName
-  
+
   const item: NavigationItem = {
     id: configName,
     title: configTitle,
@@ -201,7 +218,8 @@ function convertToNavigationItem(config: RouteConfig | BaseRouteConfig, parentPa
     icon: config.meta?.icon,
     order: config.meta?.order || 0,
     hidden: config.meta?.hidden || false,
-    disabled: config.meta?.disabled || false
+    disabled: config.meta?.disabled || false,
+    meta: config.meta
   }
 
   // 处理子路由
@@ -211,17 +229,17 @@ function convertToNavigationItem(config: RouteConfig | BaseRouteConfig, parentPa
         // 隐藏条件：
         // 1. meta.hidden = true
         const shouldHide = child.meta?.hidden
-        
+
         return !shouldHide
       })
       .sort((a, b) => (a.meta?.order || 0) - (b.meta?.order || 0))
       .map(child => convertToNavigationItem(child, relativePath))
-    
+
     // 只有当有可见的子路由时才添加 children 属性  
     if (visibleChildren.length > 0) {
       item.children = visibleChildren
     }
-    
+
   }
 
   return item
@@ -264,16 +282,16 @@ function convertToMenuItem(config: RouteConfig | BaseRouteConfig, parentPath: st
   // console.log('=== convertToMenuItem 开始 ===')
   // console.log('路由配置:', config)
   // console.log('父级路径:', parentPath)
-  
+
   // 使用统一的路径构建工具
   const relativePath = buildRelativePath(config, parentPath)
   const fullPath = buildRouteFullPath(config, parentPath)
   // console.log('构建的相对路径:', relativePath)
   // console.log('构建的完整路径:', fullPath)
-  
+
   const configName = 'name' in config ? config.name : config.title
   const configTitle = config.meta?.title || config.title || configName
-  
+
   const item: MenuItem = {
     id: configName,
     title: configTitle,
@@ -281,7 +299,8 @@ function convertToMenuItem(config: RouteConfig | BaseRouteConfig, parentPath: st
     icon: config.meta?.icon,
     order: config.meta?.order || 0,
     hidden: config.meta?.hidden || config.meta?.hiddenInMenu || false,
-    disabled: config.meta?.disabled || false
+    disabled: config.meta?.disabled || false,
+    meta: config.meta
   }
 
   // 处理子路由
@@ -291,19 +310,19 @@ function convertToMenuItem(config: RouteConfig | BaseRouteConfig, parentPath: st
         // 隐藏条件：
         // 1. meta.hidden = true
         // 2. meta.hiddenInMenu = true
-        const shouldHide = child.meta?.hidden || 
-                          child.meta?.hiddenInMenu
-        
+        const shouldHide = child.meta?.hidden ||
+          child.meta?.hiddenInMenu
+
         return !shouldHide
       })
       .sort((a, b) => (a.meta?.order || 0) - (b.meta?.order || 0))
       .map(child => convertToMenuItem(child, relativePath))
-    
+
     // 只有当有可见的子路由时才添加 children 属性  
     if (visibleChildren.length > 0) {
       item.children = visibleChildren
     }
-    
+
   }
 
   return item
@@ -334,11 +353,11 @@ export function isRouteActive(routePath: string, currentPath: string): boolean {
  */
 export function hasActiveChild(item: NavigationItem | MenuItem, currentPath: string): boolean {
   if (!item.children) return false
-  
+
   return item.children.some(child => {
     // 精确匹配子路由   
     if (child.path === currentPath) return true
-    
+
     // 递归检查子路由的子路由
     return hasActiveChild(child, currentPath)
   })
@@ -351,7 +370,7 @@ export function hasActiveChild(item: NavigationItem | MenuItem, currentPath: str
 export function getFullRoutePath(routeName: string): string {
   const route = findRouteByName(routeName)
   if (!route) return buildFullPath('/')
-  
+
   // 构建完整路径，确保包含baseURL但不重复
   return buildFullPath(route.path)
 }
@@ -361,7 +380,7 @@ export function getFullRoutePath(routeName: string): string {
  */
 export function flattenNavigationItems(items: NavigationItem[]): NavigationItem[] {
   const flattened: NavigationItem[] = []
-  
+
   function flatten(items: NavigationItem[]) {
     items.forEach(item => {
       flattened.push(item)
@@ -370,7 +389,7 @@ export function flattenNavigationItems(items: NavigationItem[]): NavigationItem[
       }
     })
   }
-  
+
   flatten(items)
   return flattened
 }
@@ -385,34 +404,38 @@ export function flattenNavigationItems(items: NavigationItem[]): NavigationItem[
  */
 export function getAllRouteInfos(): RouteInfo[] {
   const routeInfos: RouteInfo[] = []
-  
+
   // 使用已经转换并计算好页码的routeConfig
   const configs = routeConfigs.value
-  // console.log('getAllRouteInfos - start:', configs)
   if (!configs || configs.length === 0) {
     return routeInfos
   }
 
   // 扁平化路由配置，提取路由信息
   configs.forEach(parentConfig => {
-    // 添加父路由信息
-    routeInfos.push({
-      name: parentConfig.title,
-      path: `/${parentConfig.path}`,
-      level: 0,
-      order: parentConfig.order || parentConfig.meta?.order || 0,
-      pageNumber: parentConfig.pageNumber || parentConfig.meta?.pageNumber,
-      icon: parentConfig.meta?.icon,
-      hidden: parentConfig.meta?.hidden || false,
-      component: parentConfig.component ? 'parent-component' : undefined
-    })
+    const hasChildren = parentConfig.children && parentConfig.children.length > 0
+
+    if (!hasChildren) {
+      // 没有子路由的路由是独立页面，添加到路由信息
+      routeInfos.push({
+        name: parentConfig.title,
+        path: `/${parentConfig.path}`,
+        level: 0,
+        order: parentConfig.order || parentConfig.meta?.order || 0,
+        pageNumber: parentConfig.pageNumber || parentConfig.meta?.pageNumber,
+        icon: parentConfig.meta?.icon,
+        hidden: parentConfig.meta?.hidden || false,
+        component: parentConfig.component ? 'parent-component' : undefined
+      })
+    }
+    // 有子路由的父路由只是分组，不作为独立页面加入路由信息
 
     // 添加子路由信息
-    if (parentConfig.children && parentConfig.children.length > 0) {
-      parentConfig.children.forEach(childConfig => {
+    if (hasChildren) {
+      parentConfig.children!.forEach(childConfig => {
         // 构建子路由完整路径 
         const childPath = `/${parentConfig.path}/${childConfig.path}`
-        
+
         routeInfos.push({
           name: childConfig.title,
           path: childPath,
@@ -426,7 +449,6 @@ export function getAllRouteInfos(): RouteInfo[] {
       })
     }
   })
-  // console.log('getAllRouteInfos - result:', routeInfos)
   return routeInfos
 }
 
@@ -476,11 +498,11 @@ export function getChildRouteInfos(parentPath: string): RouteInfo[] {
  */
 export function getRouteInfosSortedByOrder(level?: number): RouteInfo[] {
   let routes = getAllRouteInfos()
-  
+
   if (level !== undefined) {
     routes = routes.filter(route => route.level === level)
   }
-  
+
   return routes.sort((a, b) => {
     // 首先按层级排序，然后按order排序
     if (a.level !== b.level) {
@@ -497,11 +519,11 @@ export function getRouteInfosSortedByOrder(level?: number): RouteInfo[] {
  */
 export function getRouteInfosSortedByPageNumber(level?: number): RouteInfo[] {
   let routes = getAllRouteInfos().filter(route => route.pageNumber !== undefined)
-  
+
   if (level !== undefined) {
     routes = routes.filter(route => route.level === level)
   }
-  
+
   return routes.sort((a, b) => {
     // 首先按页码排序，如果页码相同则按order排序
     if (a.pageNumber !== b.pageNumber) {
@@ -551,11 +573,11 @@ export function getRouteInfoByPageNumber(pageNumber: number): RouteInfo | undefi
 export function getNextPageRouteInfo(currentPageNumber: number): RouteInfo | undefined {
   const sortedRoutes = getRouteInfosSortedByPageNumber()
   const currentIndex = sortedRoutes.findIndex(route => route.pageNumber === currentPageNumber)
-  
+
   if (currentIndex >= 0 && currentIndex < sortedRoutes.length - 1) {
     return sortedRoutes[currentIndex + 1]
   }
-  
+
   return undefined
 }
 
@@ -567,11 +589,11 @@ export function getNextPageRouteInfo(currentPageNumber: number): RouteInfo | und
 export function getPreviousPageRouteInfo(currentPageNumber: number): RouteInfo | undefined {
   const sortedRoutes = getRouteInfosSortedByPageNumber()
   const currentIndex = sortedRoutes.findIndex(route => route.pageNumber === currentPageNumber)
-  
+
   if (currentIndex > 0) {
     return sortedRoutes[currentIndex - 1]
   }
-  
+
   return undefined
 }
 
@@ -583,9 +605,9 @@ export function getPreviousPageRouteInfo(currentPageNumber: number): RouteInfo |
  */
 export function getRouteInfosByPageRange(startPage: number, endPage: number): RouteInfo[] {
   const allRoutes = getAllRouteInfos()
-  return allRoutes.filter(route => 
-    route.pageNumber !== undefined && 
-    route.pageNumber >= startPage && 
+  return allRoutes.filter(route =>
+    route.pageNumber !== undefined &&
+    route.pageNumber >= startPage &&
     route.pageNumber <= endPage
   ).sort((a, b) => (a.pageNumber || 0) - (b.pageNumber || 0))
 }
@@ -599,7 +621,7 @@ export function getMaxPageNumber(): number {
   const pageNumbers = allRoutes
     .map(route => route.pageNumber)
     .filter(pageNumber => pageNumber !== undefined) as number[]
-  
+
   return pageNumbers.length > 0 ? Math.max(...pageNumbers) : 0
 }
 
@@ -612,7 +634,7 @@ export function getMinPageNumber(): number {
   const pageNumbers = allRoutes
     .map(route => route.pageNumber)
     .filter(pageNumber => pageNumber !== undefined) as number[]
-  
+
   return pageNumbers.length > 0 ? Math.min(...pageNumbers) : 0
 }
 
@@ -623,11 +645,11 @@ export function getMinPageNumber(): number {
  */
 export function getVisibleRouteInfos(level?: number): RouteInfo[] {
   let routes = getAllRouteInfos().filter(route => !route.hidden)
-  
+
   if (level !== undefined) {
     routes = routes.filter(route => route.level === level)
   }
-  
+
   return routes.sort((a, b) => {
     if (a.level !== b.level) {
       return a.level - b.level
@@ -643,16 +665,16 @@ export function getVisibleRouteInfos(level?: number): RouteInfo[] {
 export function getRouteHierarchy(): Record<string, RouteInfo[]> {
   const hierarchy: Record<string, RouteInfo[]> = {}
   const allRoutes = getAllRouteInfos()
-  
+
   // 获取所有父路由
   const parentRoutes = allRoutes.filter(route => route.level === 0)
-  
+
   parentRoutes.forEach(parentRoute => {
-    hierarchy[parentRoute.path] = allRoutes.filter(route => 
+    hierarchy[parentRoute.path] = allRoutes.filter(route =>
       route.level === 1 && route.parentPath === parentRoute.path
     ).sort((a, b) => a.order - b.order)
   })
-  
+
   return hierarchy
 }
 
@@ -673,7 +695,7 @@ export function getRouteStatistics(): {
 } {
   const allRoutes = getAllRouteInfos()
   const routesWithPageNumber = allRoutes.filter(route => route.pageNumber !== undefined)
-  
+
   return {
     total: allRoutes.length,
     parentRoutes: allRoutes.filter(route => route.level === 0).length,

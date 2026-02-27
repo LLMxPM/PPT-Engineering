@@ -17,13 +17,19 @@
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-blue-50 h-[60px]">
       <h2 class="text-[20px] font-semibold text-gray-900 m-0">页面（路由）设置</h2>
       <div class="flex items-center gap-2">
-        <button @click="openAddRoute" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100" title="添加页面">
+        <button @click="openAddRoute"
+          class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100"
+          title="添加页面">
           <Plus :size="16" />
         </button>
-        <button @click="saveRoutes" :disabled="!hasChanges" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed" title="保存并刷新">
+        <button @click="saveRoutes" :disabled="!hasChanges"
+          class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="保存并刷新">
           <Save :size="16" />
         </button>
-        <button @click="onRequestClose" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100" title="取消">
+        <button @click="onRequestClose"
+          class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100"
+          title="取消">
           <X :size="16" />
         </button>
       </div>
@@ -71,7 +77,9 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <!-- 在标题前显示排序数字 -->
-                  <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{ route.meta?.order }}</span>
+                  <span
+                    class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{
+                    route.meta?.order }}</span>
                   <span class="font-medium text-gray-900 text-[14px] truncate">{{ route.meta?.title || '未命名' }}</span>
                   <!-- <span class="text-[11px] text-gray-500 truncate">{{ route.route }}</span> -->
                 </div>
@@ -102,7 +110,8 @@
               leave-active-class="transition-all duration-300 ease-in overflow-hidden"
               enter-from-class="max-h-0 opacity-0" enter-to-class="max-h-[2000px] opacity-100"
               leave-from-class="max-h-[2000px] opacity-100" leave-to-class="max-h-0 opacity-0">
-              <div v-if="expandedRoutes.has(route.route) && route.children && route.children.length > 0" class="px-3 py-2 border-t border-gray-200">
+              <div v-if="expandedRoutes.has(route.route) && route.children && route.children.length > 0"
+                class="px-3 py-2 border-t border-gray-200">
                 <!-- 子路由列表（仅展示，编辑通过弹窗） -->
                 <div class="space-y-2">
                   <div v-for="(child, childIndex) in route.children" :key="childIndex"
@@ -111,9 +120,11 @@
                       <div class="min-w-0">
                         <div class="flex items-center gap-2">
                           <!-- 在子路由标题前显示排序数字 -->
-                          <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{ child.meta?.order }}</span>
+                          <span
+                            class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{
+                            child.meta?.order }}</span>
                           <span class="font-medium text-gray-800 text-[13px] truncate">{{ child.meta?.title || '未命名子路由'
-                            }}</span>
+                          }}</span>
                           <!-- <span class="text-[11px] text-gray-500 truncate">{{ child.route }}</span> -->
                         </div>
                       </div>
@@ -141,28 +152,12 @@
 
 
     <!-- 编辑/新增 模态框（抽取为独立组件） -->
-    <RouteEditorModal
-      :visible="editor.visible"
-      :headerTitle="editorHeaderTitle"
-      :mode="editor.mode"
-      v-model:type="editor.type"
-      v-model:form="editor.form"
-      v-model:parent="editor.parentRoute"
-      @close="closeEditor"
-      @save="saveEditor"
-    />
+    <RouteEditorModal :visible="editor.visible" :headerTitle="editorHeaderTitle" :mode="editor.mode"
+      v-model:type="editor.type" v-model:form="editor.form" v-model:parent="editor.parentRoute" @close="closeEditor"
+      @save="saveEditor" />
 
-    <ConfirmModal
-      v-model:visible="confirm.visible"
-      :title="confirm.title"
-      :message="confirm.message"
-      :widthVw="40"
-      :zIndex="1100"
-      cancel-text="取消"
-      ok-text="确定"
-      @ok="confirmOk"
-      @cancel="confirmCancel"
-    />
+    <ConfirmModal v-model:visible="confirm.visible" :title="confirm.title" :message="confirm.message" :widthVw="40"
+      :zIndex="1100" cancel-text="取消" ok-text="确定" @ok="confirmOk" @cancel="confirmCancel" />
   </div>
 </template>
 
@@ -189,7 +184,7 @@ interface RouteChild {
 
 interface RouteConfig {
   route: string
-  component: string
+  component?: string
   meta: RouteMeta
   children?: RouteChild[]
 }
@@ -485,12 +480,16 @@ function saveEditor() {
 
   if (mode === 'add') {
     if (type === 'route') {
-      const newRoute: RouteConfig = {
-        route: form.route || 'new-route',
-        component: normalizeComponentPathInput(form.component || '@/views/NewRoute.vue'),
-        meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
+      if (targetParentIndex >= 0) {
+        // 用户将顶级路由移动为子路由
+      } else {
+        const newRoute: RouteConfig = {
+          route: form.route || 'new-route',
+          ...(form.component ? { component: normalizeComponentPathInput(form.component) } : {}),
+          meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
+        }
+        routes.value.push(newRoute)
       }
-      routes.value.push(newRoute)
     } else if (type === 'child') {
       if (targetParentIndex >= 0) {
         const parent = routes.value[targetParentIndex]
@@ -504,7 +503,7 @@ function saveEditor() {
       } else {
         const newRouteFallback: RouteConfig = {
           route: form.route || 'new-route',
-          component: normalizeComponentPathInput(form.component || '@/views/NewRoute.vue'),
+          ...(form.component ? { component: normalizeComponentPathInput(form.component) } : {}),
           meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
         }
         routes.value.push(newRouteFallback)
@@ -515,8 +514,15 @@ function saveEditor() {
       const target = routes.value[routeIndex]
       if (!target) return
       if (type === 'route') {
+        // 编辑顶级路由：有子路由时不设置 component
         target.route = form.route
-        target.component = normalizeComponentPathInput(form.component)
+        const hasChildren = Array.isArray(target.children) && target.children.length > 0
+        if (hasChildren) {
+          // 有子路由的父路由不需要 component
+          delete (target as any).component
+        } else if (form.component) {
+          target.component = normalizeComponentPathInput(form.component)
+        }
         target.meta.title = form.meta.title
         target.meta.icon = form.meta.icon
         target.meta.order = form.meta.order

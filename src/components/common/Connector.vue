@@ -10,14 +10,18 @@
     overflow: 'visible'
   }">
     <defs>
-      <!-- 箭头标记定义 -->
-      <marker v-if="arrow === 'end' || arrow === 'both'" :id="`arrow-end-${uniqueId}`" markerWidth="10"
-        markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,0 L0,6 L9,3 z " :fill="resolvedColor" />
+      <!-- 箭头标记定义（使用 userSpaceOnUse 并手动 scale，确保不管 SVG 缩放机制如何，尖端永远与线段缩进完美抵消） -->
+      <marker v-if="arrow === 'end' || arrow === 'both'" :id="`arrow-end-${uniqueId}`" markerWidth="1" markerHeight="1"
+        refX="0" refY="0" orient="auto" markerUnits="userSpaceOnUse" style="overflow: visible;">
+        <g :transform="`scale(${strokeWidth}) translate(-5, -3)`">
+          <path d="M0,0 L0,6 L9,3 z" :fill="resolvedColor" />
+        </g>
       </marker>
-      <marker v-if="arrow === 'start' || arrow === 'both'" :id="`arrow-start-${uniqueId}`" markerWidth="10"
-        markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
-        <path d="M9,0 L9,6 L0,3 z" :fill="resolvedColor" />
+      <marker v-if="arrow === 'start' || arrow === 'both'" :id="`arrow-start-${uniqueId}`" markerWidth="1"
+        markerHeight="1" refX="0" refY="0" orient="auto" markerUnits="userSpaceOnUse" style="overflow: visible;">
+        <g :transform="`scale(${strokeWidth}) translate(-4, -3)`">
+          <path d="M9,0 L9,6 L0,3 z" :fill="resolvedColor" />
+        </g>
       </marker>
     </defs>
 
@@ -93,12 +97,31 @@ const uniqueId = ref(Math.random().toString(36).substring(2, 11))
 const svgRef = ref<SVGSVGElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 
-// 获取元素
+// 获取元素（优先在当前组件树/临近上下文中查找）
 const getElement = (target: string | HTMLElement): HTMLElement | null => {
-  if (typeof target === 'string') {
-    return document.querySelector(target)
+  if (typeof target !== 'string') {
+    return target;
   }
-  return target
+
+  // 如果没有挂载，暂时回退到 document.querySelector
+  if (!svgRef.value) {
+    return document.querySelector(target);
+  }
+
+  // 组件级 ID 冲突解决策略：优先在“当前”作用域（离连接线最近的共同祖先节点）内查找
+  // 向上遍历祖先节点，直到找到包含目标选择器的容器
+  let currentParent = svgRef.value.parentElement;
+  while (currentParent) {
+    const foundElements = currentParent.querySelectorAll(target);
+    if (foundElements.length > 0) {
+      // 找到了目标，返回匹配的第一个
+      return foundElements[0] as HTMLElement;
+    }
+    currentParent = currentParent.parentElement;
+  }
+
+  // 兜底方案：全文档查找
+  return document.querySelector(target);
 }
 
 // 查找共同的父容器（最近的定位祖先）
@@ -192,38 +215,74 @@ const getAnchorPoint = (
 // 生成直线路径
 const generateStraightPath = (
   start: { x: number; y: number },
-  end: { x: number; y: number }
+  end: { x: number; y: number },
+  shrinkStart: number = 0,
+  shrinkEnd: number = 0
 ): string => {
-  return `M ${start.x} ${start.y} L ${end.x} ${end.y}`
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const distance = Math.sqrt(dx * dx + dy * dy)
+
+  if (distance <= shrinkStart + shrinkEnd) return ''
+
+  const sx = start.x + (dx / distance) * shrinkStart
+  const sy = start.y + (dy / distance) * shrinkStart
+  const ex = end.x - (dx / distance) * shrinkEnd
+  const ey = end.y - (dy / distance) * shrinkEnd
+
+  return `M ${sx} ${sy} L ${ex} ${ey}`
 }
 
 // 生成折线路径（智能选择水平或垂直优先）
 const generatePolylinePath = (
   start: { x: number; y: number },
-  end: { x: number; y: number }
+  end: { x: number; y: number },
+  shrinkStart: number = 0,
+  shrinkEnd: number = 0
 ): string => {
   const dx = Math.abs(end.x - start.x)
   const dy = Math.abs(end.y - start.y)
 
-  // 如果水平距离更大，使用垂直中点
+  let sx = start.x
+  let sy = start.y
+  let ex = end.x
+  let ey = end.y
+
+  // 如果水平距离更大，首尾使用水平线段
   if (dx > dy) {
     const midX = (start.x + end.x) / 2
-    return `M ${start.x} ${start.y} L ${midX} ${start.y} L ${midX} ${end.y} L ${end.x} ${end.y}`
+    const sDir = midX >= start.x ? 1 : -1
+    const eDir = midX >= end.x ? 1 : -1
+
+    sx += sDir * Math.min(shrinkStart, Math.abs(midX - start.x))
+    ex += eDir * Math.min(shrinkEnd, Math.abs(midX - end.x))
+
+    return `M ${sx} ${sy} L ${midX} ${sy} L ${midX} ${end.y} L ${ex} ${ey}`
   } else {
-    // 否则使用水平中点
+    // 否则首尾使用垂直线段
     const midY = (start.y + end.y) / 2
-    return `M ${start.x} ${start.y} L ${start.x} ${midY} L ${end.x} ${midY} L ${end.x} ${end.y}`
+    const sDir = midY >= start.y ? 1 : -1
+    const eDir = midY >= end.y ? 1 : -1
+
+    sy += sDir * Math.min(shrinkStart, Math.abs(midY - start.y))
+    ey += eDir * Math.min(shrinkEnd, Math.abs(midY - end.y))
+
+    return `M ${sx} ${sy} L ${start.x} ${midY} L ${end.x} ${midY} L ${ex} ${ey}`
   }
 }
 
 // 生成曲线路径
 const generateCurvePath = (
   start: { x: number; y: number },
-  end: { x: number; y: number }
+  end: { x: number; y: number },
+  shrinkStart: number = 0,
+  shrinkEnd: number = 0
 ): string => {
   const dx = end.x - start.x
   const dy = end.y - start.y
   const distance = Math.sqrt(dx * dx + dy * dy)
+
+  if (distance === 0) return ''
 
   // 控制点偏移量
   const offset = distance * props.curvature
@@ -232,7 +291,31 @@ const generateCurvePath = (
   const cp1x = start.x + dx * 0.5 - dy * offset / distance
   const cp1y = start.y + dy * 0.5 + dx * offset / distance
 
-  return `M ${start.x} ${start.y} Q ${cp1x} ${cp1y} ${end.x} ${end.y}`
+  let sx = start.x
+  let sy = start.y
+  const sdx = cp1x - start.x
+  const sdy = cp1y - start.y
+  const sDist = Math.sqrt(sdx * sdx + sdy * sdy)
+
+  if (sDist > 0) {
+    const actualShrink = Math.min(shrinkStart, sDist)
+    sx += (sdx / sDist) * actualShrink
+    sy += (sdy / sDist) * actualShrink
+  }
+
+  let ex = end.x
+  let ey = end.y
+  const edx = cp1x - end.x
+  const edy = cp1y - end.y
+  const eDist = Math.sqrt(edx * edx + edy * edy)
+
+  if (eDist > 0) {
+    const actualShrink = Math.min(shrinkEnd, eDist)
+    ex += (edx / eDist) * actualShrink
+    ey += (edy / eDist) * actualShrink
+  }
+
+  return `M ${sx} ${sy} Q ${cp1x} ${cp1y} ${ex} ${ey}`
 }
 
 // 更新连接线
@@ -270,23 +353,37 @@ const updateConnector = () => {
   const start = getAnchorPoint(fromElement, props.fromAnchor, container)
   const end = getAnchorPoint(toElement, props.toAnchor, container)
 
+  // 计算线的收缩距离（根据 marker 减少的单位 * 线宽，单位为 4 是因为 refX 相对于箭尖端点相差 4）
+  const shrinkStart = (props.arrow === 'start' || props.arrow === 'both') ? 4 * props.strokeWidth : 0
+  const shrinkEnd = (props.arrow === 'end' || props.arrow === 'both') ? 4 * props.strokeWidth : 0
+
   switch (props.type) {
     case 'polyline':
-      pathData.value = generatePolylinePath(start, end)
+      pathData.value = generatePolylinePath(start, end, shrinkStart, shrinkEnd)
       break
     case 'curve':
-      pathData.value = generateCurvePath(start, end)
+      pathData.value = generateCurvePath(start, end, shrinkStart, shrinkEnd)
       break
     case 'straight':
     default:
-      pathData.value = generateStraightPath(start, end)
+      pathData.value = generateStraightPath(start, end, shrinkStart, shrinkEnd)
       break
   }
 }
 
 // 监听属性变化
 watch(
-  () => [props.from, props.to, props.type, props.fromAnchor, props.toAnchor, props.curvature, props.color],
+  () => [
+    props.from,
+    props.to,
+    props.type,
+    props.fromAnchor,
+    props.toAnchor,
+    props.curvature,
+    props.color,
+    props.strokeWidth,
+    props.arrow
+  ],
   () => {
     updateConnector()
   }

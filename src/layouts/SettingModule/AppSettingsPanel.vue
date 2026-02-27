@@ -16,10 +16,14 @@
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-blue-50 h-[60px]">
       <h2 class="text-[20px] font-semibold text-gray-900 m-0">基础设置</h2>
       <div class="flex items-center gap-2">
-        <button @click="saveConfig" :disabled="!hasChanges" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed" title="保存并刷新">
+        <button @click="saveConfig" :disabled="!hasChanges"
+          class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          title="保存并刷新">
           <Save :size="16" />
         </button>
-        <button @click="onRequestClose" class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100" title="取消">
+        <button @click="onRequestClose"
+          class="flex items-center justify-center w-8 h-8 p-0 border-0 bg-transparent text-gray-700 rounded-md cursor-pointer hover:bg-blue-100"
+          title="取消">
           <X :size="16" />
         </button>
       </div>
@@ -36,7 +40,8 @@
       <!-- 错误状态 -->
       <div v-else-if="error" class="flex flex-col items-center justify-center py-10 text-center">
         <p class="text-red-500 mb-4">{{ error }}</p>
-        <button @click="loadConfig" class="px-4 py-2 bg-blue-500 text-white border-0 rounded-md cursor-pointer hover:bg-blue-600">重试</button>
+        <button @click="loadConfig"
+          class="px-4 py-2 bg-blue-500 text-white border-0 rounded-md cursor-pointer hover:bg-blue-600">重试</button>
       </div>
 
       <!-- 配置编辑器 -->
@@ -49,19 +54,24 @@
           <div class="flex flex-col gap-2">
             <label class="text-[14px] text-gray-600">应用图标（图标系统名称）</label>
             <div class="flex items-center gap-2">
-              <Icon :name="config.app.icon" class="text-blue-600 flex-shrink-0 transition-all duration-200" :size="24" />
-              <input type="text" class="flex-1 px-2 py-1.5 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700"
-                     v-model="config.app.icon" @input="markAsChanged" placeholder="请输入图标名称" />
-              <button @click="openIconPicker" class="px-1 py-1.5 text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">选择图标</button>
+              <Icon :name="config.app.icon" class="text-blue-600 flex-shrink-0 transition-all duration-200"
+                :size="24" />
+              <input type="text"
+                class="flex-1 px-2 py-1.5 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700"
+                v-model="config.app.icon" @input="markAsChanged" placeholder="请输入图标名称" />
+              <button @click="openIconPicker"
+                class="px-1 py-1.5 text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">选择图标</button>
             </div>
 
             <label class="text-[14px] text-gray-600">应用标题</label>
-            <input type="text" class="w-full px-2 py-1.5 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700"
-                   v-model="config.app.title" @input="markAsChanged" placeholder="例如：PPT-Engineering" />
+            <input type="text"
+              class="w-full px-2 py-1.5 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700"
+              v-model="config.app.title" @input="markAsChanged" placeholder="例如：PPT-Engineering" />
 
             <label class="text-[14px] text-gray-600">基础地址（baseUrl）</label>
-            <input type="text" class="w-full px-2 py-1.5 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700"
-                   v-model="config.app.baseUrl" @input="markAsChanged" placeholder="例如：/ 或 /PPT-Engineering/" />
+            <input type="text"
+              class="w-full px-2 py-1.5 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700"
+              v-model="config.app.baseUrl" @input="markAsChanged" placeholder="例如：/ 或 /PPT-Engineering/" />
           </div>
         </div>
 
@@ -70,11 +80,28 @@
           <div class="flex items-center justify-between mb-2">
             <span class="text-[16px] font-semibold text-gray-900">功能特性</span>
           </div>
-          <label class="flex items-center gap-2 text-[16px] text-gray-700">
-            <input type="checkbox" class="w-4 h-4"
-                   v-model="config.app.features.showPdfExportButton" @change="markAsChanged" />
+          <label class="flex items-center gap-2 text-[14px] text-gray-700 mb-3">
+            <input type="checkbox" class="w-4 h-4 cursor-pointer" v-model="config.app.features.showPdfExportButton"
+              @change="markAsChanged" />
             <span>显示 PDF 导出按钮</span>
           </label>
+
+          <div class="flex flex-col gap-2">
+            <span class="text-[14px] text-gray-600">侧边栏菜单展示模式</span>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 text-[14px] text-gray-700 cursor-pointer">
+                <input type="radio" value="text" v-model="config.app.features.menuMode" @change="markAsChanged"
+                  class="w-4 h-4 text-blue-600 cursor-pointer" />
+                <span>普通文本</span>
+              </label>
+              <label class="flex items-center gap-2 text-[14px] text-gray-700 cursor-pointer">
+                <input type="radio" value="preview" v-model="config.app.features.menuMode" @change="markAsChanged"
+                  class="w-4 h-4 text-blue-600 cursor-pointer" />
+                <span>预览缩略图</span>
+              </label>
+            </div>
+            <span class="text-[12px] text-gray-400">开启预览模式后，侧边栏无子路由页面将显示页面微缩图</span>
+          </div>
         </div>
 
         <!-- 提示 -->
@@ -82,16 +109,9 @@
       </div>
     </div>
   </div>
-  <EditorModal
-    :visible="iconPickerVisible"
-    :title="'选择应用图标'"
-    :widthVw="70"
-    :heightVh="80"
-    :zIndex="104"
-    :showFooter="false"
-    @update:visible="v => { if (!v) iconPickerVisible = false }"
-    @cancel="() => { iconPickerVisible = false }"
-  >
+  <EditorModal :visible="iconPickerVisible" :title="'选择应用图标'" :widthVw="70" :heightVh="80" :zIndex="104"
+    :showFooter="false" @update:visible="v => { if (!v) iconPickerVisible = false }"
+    @cancel="() => { iconPickerVisible = false }">
     <div class="h-[calc(80vh-100px)]">
       <IconPicker v-model="config.app.icon" @select="handleIconSelected" />
     </div>
@@ -116,12 +136,12 @@ import Icon from '@/components/layout/contentcommon/Icon.vue'
 /** 组件属性 */
 interface Props { visible: boolean }
 /** 组件事件 */
-interface Emits { (e: 'close'): void; (e: 'update'): void }
+interface Emits { (e: 'close'): void;(e: 'update'): void }
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 /** 配置类型定义 */
-interface AppFeatures { showPdfExportButton?: boolean }
+interface AppFeatures { showPdfExportButton?: boolean; menuMode?: 'text' | 'preview' }
 interface AppInfo {
   icon: string
   title: string
@@ -142,7 +162,7 @@ const noticeShown = ref(false)
 const iconPickerVisible = ref(false)
 
 /** 配置对象 */
-const config = ref<AppConfigFile>({ app: { icon: '', title: '', baseUrl: '/', features: { showPdfExportButton: true } } })
+const config = ref<AppConfigFile>({ app: { icon: '', title: '', baseUrl: '/', features: { showPdfExportButton: true, menuMode: 'text' } } })
 
 /**
  * 标记更改
@@ -189,7 +209,8 @@ async function loadConfig(): Promise<void> {
         description: cfg?.app?.description || '',
         baseUrl: cfg?.app?.baseUrl || '/',
         features: {
-          showPdfExportButton: cfg?.app?.features?.showPdfExportButton ?? true
+          showPdfExportButton: cfg?.app?.features?.showPdfExportButton ?? true,
+          menuMode: cfg?.app?.features?.menuMode || 'text'
         }
       }
     }
@@ -238,8 +259,20 @@ onMounted(() => { if (props.visible) { loadConfig() } })
 
 <style scoped>
 /* 自定义滚动条 */
-.overflow-y-auto::-webkit-scrollbar { width: 6px; }
-.overflow-y-auto::-webkit-scrollbar-track { background: #f1f5f9; }
-.overflow-y-auto::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-.overflow-y-auto::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 </style>

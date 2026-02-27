@@ -11,7 +11,7 @@ import { fileManagerService } from '@/core/services/FileManagerService'
 
 export interface RouteMeta { title: string; icon?: string; order: number }
 export interface RouteChild { route: string; component: string; meta: RouteMeta }
-export interface RouteConfig { route: string; component: string; meta: RouteMeta; children?: RouteChild[] }
+export interface RouteConfig { route: string; component?: string; meta: RouteMeta; children?: RouteChild[] }
 export interface RouteConfigFile { routes: RouteConfig[] }
 
 const CONFIG_PATH = 'public/config/routes.config.yaml'
@@ -276,12 +276,17 @@ export async function deleteChildRoute(parentRoute: string, childRouteId: string
  * 清洗子路由的 icon 字段
  */
 function sanitizeRoutes(list: RouteConfig[]): RouteConfig[] {
-  return (list || []).map((r) => ({
-    route: r.route,
-    component: r.component,
-    meta: { title: r.meta?.title || '', icon: r.meta?.icon, order: r.meta?.order ?? 0 },
-    children: Array.isArray(r.children)
-      ? r.children.map((c) => ({ route: c.route, component: c.component, meta: { title: c.meta?.title || '', order: c.meta?.order ?? 0 } }))
-      : undefined
-  }))
+  return (list || []).map((r) => {
+    const hasChildren = Array.isArray(r.children) && r.children.length > 0
+    const result: RouteConfig = {
+      route: r.route,
+      // 有子路由时父路由不需要 component（分组路由）
+      ...((!hasChildren && r.component) ? { component: r.component } : {}),
+      meta: { title: r.meta?.title || '', icon: r.meta?.icon, order: r.meta?.order ?? 0 },
+      children: hasChildren
+        ? r.children!.map((c) => ({ route: c.route, component: c.component, meta: { title: c.meta?.title || '', order: c.meta?.order ?? 0 } }))
+        : undefined
+    }
+    return result
+  })
 }

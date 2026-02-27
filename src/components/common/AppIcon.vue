@@ -115,7 +115,14 @@ const effectiveSize = computed(() => {
 
 const iconSize = computed(() => {
   const size = effectiveSize.value
-  return typeof size === 'number' ? `${size}px` : size
+  if (typeof size === 'number') {
+    return `${size}px`
+  }
+  // 如果是纯数字字符串（如 "24"），也添加 px 单位
+  if (typeof size === 'string' && /^\d+(\.\d+)?$/.test(size)) {
+    return `${size}px`
+  }
+  return size
 })
 
 const effectiveStrokeWidth = computed(() => {

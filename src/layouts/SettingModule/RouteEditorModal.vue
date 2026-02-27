@@ -77,6 +77,8 @@
           <!-- 组件路径（开发模式支持联想与弹窗选择组件） -->
           <div>
             <label class="block text-[14px] font-medium text-gray-700 mb-1">组件路径</label>
+            <!-- 顶级路由且有子路由时提示不需要组件 -->
+            <p v-if="localType === 'route'" class="text-[12px] text-amber-600 mb-1">提示：如果该路由有子路由，则不需要配置组件（作为分组路由）</p>
             <div v-if="props.componentLocked">
               <input v-model="localForm.component" type="text" disabled
                 class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] bg-gray-100 text-gray-500" />
@@ -102,7 +104,6 @@
                       class="w-full text-left px-3 py-2 hover:bg-gray-50 cursor-pointer"
                       :class="{ 'bg-blue-50': idx === activeSuggestionIndex }">
                       <div class="flex items-center justify-between">
-                        <!-- <span class="text-gray-900">{{ opt.label }}</span> -->
                         <span class="text-gray-900">{{ opt.value }}</span>
                       </div>
                     </button>
@@ -122,12 +123,15 @@
           </div>
           <!-- 页面组件预览 -->
           <div>
-            <div class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden" style="aspect-ratio: 16 / 9;">
+            <div class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden"
+              style="aspect-ratio: 16 / 9;">
               <ViewPreview v-if="localForm.component" :filePath="localForm.component" />
-              <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-500">请选择或输入有效的视图组件路径</div>
+              <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-500">
+                请选择或输入有效的视图组件路径</div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </EditorModal>
@@ -541,7 +545,7 @@ onMounted(() => {
 })
 
 // 组件卸载时清理事件
-onUnmounted(() => {})
+onUnmounted(() => { })
 </script>
 
 <style scoped>

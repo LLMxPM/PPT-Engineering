@@ -111,6 +111,8 @@ export async function waitForImages(element: HTMLElement): Promise<void> {
 export function findContentElement(): HTMLElement | null {
   // 按优先级查找内容区域，增加更多选择器
   const selectors = [
+    '.fixed-ratio-container',
+    '.page-content-wrapper',
     // 页面特定内容区域
     '.page-content',           // 页面内容区域
     '.main-content',           // 主内容区域

@@ -1,7 +1,7 @@
 <template>
   <DefaultContentPage title="连接线组件演示" subtitle="Connector Component Demo">
     <template #content>
-<div class="p-8 relative grid grid-cols-2 gap-8">
+      <div class="p-8 relative grid grid-cols-2 gap-8">
         <section class="mb-4 relative ">
           <h3 class="text-2xl font-bold mb-4 text-[var(--color-text-primary)]">直线连接 (Straight)</h3>
           <div class="flex justify-between items-center gap-16 px-24 py-2 relative min-h-[150px]">
@@ -12,7 +12,8 @@
               class="w-[120px] h-20 flex items-center justify-center text-white font-bold rounded-lg shadow-md bg-green-500">
               终点</div>
           </div>
-          <Connector from="#box1" to="#box2" type="straight" :stroke-width="3" color="var(--theme-accent-1)" arrow="end"  from-anchor="right" to-anchor="left"/>
+          <Connector from="#box1" to="#box2" type="straight" :stroke-width="3" color="var(--theme-accent-1)" arrow="end"
+            from-anchor="right" to-anchor="left" />
         </section>
 
         <!-- 示例 2: 折线连接 -->
@@ -26,7 +27,8 @@
               class="w-[120px] h-20 flex items-center justify-center mt-32 text-white font-bold rounded-lg shadow-md bg-orange-500">
               终点</div>
           </div>
-          <Connector from="#box3" to="#box4" type="polyline" :stroke-width="2" color="var(--theme-accent-2)" arrow="both" from-anchor="right" to-anchor="left" />
+          <Connector from="#box3" to="#box4" type="polyline" :stroke-width="2" color="var(--theme-accent-2)"
+            arrow="both" from-anchor="right" to-anchor="left" />
         </section>
 
         <!-- 示例 3: 曲线连接 -->
@@ -40,8 +42,8 @@
               class="w-[120px] h-20 flex items-center justify-center text-invert font-bold rounded-lg shadow-md bg-accent2">
               终点</div>
           </div>
-          <Connector from="#box5" to="#box6" type="curve" :stroke-width="3" color="var(--theme-accent-3)" arrow="end" from-anchor="top" to-anchor="top"
-            :curvature="-0.3" />
+          <Connector from="#box5" to="#box6" type="curve" :stroke-width="3" color="var(--theme-accent-3)" arrow="end"
+            from-anchor="top" to-anchor="top" :curvature="-0.3" />
         </section>
 
         <!-- 示例 4: 虚线连接 -->
@@ -55,8 +57,8 @@
               class="w-[120px] h-20 flex items-center justify-center text-white font-bold rounded-lg shadow-md bg-red-500">
               终点</div>
           </div>
-          <Connector from="#box7" to="#box8" type="straight" :stroke-width="2" color="var(--theme-text-primary)" arrow="end" from-anchor="right" to-anchor="left"
-            :dashed="true" />
+          <Connector from="#box7" to="#box8" type="straight" :stroke-width="2" color="var(--theme-text-primary)"
+            arrow="end" from-anchor="right" to-anchor="left" :dashed="true" />
         </section>
 
         <!-- 示例 5: 锚点位置 -->
@@ -101,9 +103,10 @@
               class="w-[120px] h-20 flex items-center justify-center text-white font-bold rounded-lg shadow-md bg-emerald-500">
               终点</div>
           </div>
-          <Connector from="#box14" to="#box15" type="straight" :stroke-width="1" color="#10b981" arrow="end" from-anchor="right" to-anchor="left"/>
-          <Connector from="#box14" to="#box15" type="curve" :stroke-width="5" color="var(--theme-accent-4)" arrow="end" from-anchor="bottom" to-anchor="bottom"
-            :curvature="0.5" />
+          <Connector from="#box14" to="#box15" type="straight" :stroke-width="1" color="#10b981" arrow="end"
+            from-anchor="right" to-anchor="left" />
+          <Connector from="#box14" to="#box15" type="curve" :stroke-width="5" color="var(--theme-accent-4)" arrow="end"
+            from-anchor="bottom" to-anchor="bottom" :curvature="0.5" />
         </section>
 
       </div>

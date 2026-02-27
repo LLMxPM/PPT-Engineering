@@ -92,35 +92,61 @@
                   <ul v-if="isMenuExpanded(item.path) && !isCollapsed"
                     class="list-none mt-2 mb-0 mx-0 p-1 py-0 bg-gray-50 rounded-xl overflow-hidden">
                     <li v-for="child in item.children" :key="child.path" class="m-0">
-                      <router-link :to="child.path"
-                        class="flex items-center py-2 px-4 pl-8 mx-2 my-0.5 text-gray-500 no-underline rounded-lg text-[14px] transition-all duration-200"
-                        :class="isActiveRoute(child.path)
-                          ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 hover:text-white hover:translate-x-1'
-                          : 'hover:bg-gray-200 hover:translate-x-1 hover:shadow-sm'">
-                        <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{{ child.title }}</span>
-                      </router-link>
+                      <div @mouseenter="isPreviewMode ? showSimpleTooltip(child.title, $event) : null"
+                        @mouseleave="isPreviewMode ? hideSimpleTooltip() : null">
+                        <router-link :to="child.path"
+                          class="flex items-center text-gray-500 no-underline rounded-lg text-[14px] transition-all duration-200"
+                          :class="[
+                            (isPreviewMode && child.meta?.componentPath) ? 'p-2 mx-2 mb-2' : 'py-2 px-4 pl-8 mx-2 my-0.5',
+                            isActiveRoute(child.path)
+                              ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 hover:text-white hover:translate-x-1'
+                              : 'hover:bg-gray-200 hover:translate-x-1 hover:shadow-sm'
+                          ]">
+                          <template v-if="isPreviewMode && child.meta?.componentPath">
+                            <div class="w-full aspect-video rounded overflow-hidden relative bg-white shadow-sm"
+                              :class="isActiveRoute(child.path) ? 'ring-2 ring-white/50' : 'border border-gray-300'">
+                              <ViewPreview :file-path="child.meta.componentPath" />
+                              <div class="absolute inset-0 z-10 transition-colors hover:bg-black/5"></div>
+                            </div>
+                          </template>
+                          <template v-else>
+                            <span class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">{{ child.title
+                            }}</span>
+                          </template>
+                        </router-link>
+                      </div>
                     </li>
                   </ul>
                 </transition>
               </div>
 
-              <div v-else @mouseenter="isCollapsed ? showSimpleTooltip(item.title, $event) : null"
-                @mouseleave="isCollapsed ? hideSimpleTooltip() : null">
+              <div v-else @mouseenter="(isCollapsed || isPreviewMode) ? showSimpleTooltip(item.title, $event) : null"
+                @mouseleave="(isCollapsed || isPreviewMode) ? hideSimpleTooltip() : null">
                 <router-link :to="item.path"
-                  class="flex items-center py-3 px-4 text-gray-500 no-underline rounded-xl transition-all duration-200 relative mx-2 font-medium"
+                  class="flex items-center text-gray-500 no-underline rounded-xl transition-all duration-200 relative mx-2 font-medium"
                   :class="[
+                    (isPreviewMode && !isCollapsed && item.meta?.componentPath) ? 'p-2' : 'py-3 px-4',
                     isActiveRoute(item.path)
                       ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50 hover:bg-blue-600 hover:text-white' + (isCollapsed ? '' : ' hover:translate-x-1')
                       : 'hover:bg-gray-100 hover:text-gray-700' + (isCollapsed ? ' hover:scale-110' : ' hover:translate-x-1'),
                     isCollapsed ? 'justify-center p-3 mx-2' : ''
                   ]">
-                  <div class="flex items-center justify-center flex-shrink-0" :class="isCollapsed ? 'mr-0' : 'mr-3'">
-                    <Icon v-if="item.icon" :name="item.icon" class="flex-shrink-0 transition-all duration-200"
-                      :size="20" />
-                  </div>
-                  <span v-if="!isCollapsed" class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
-                    {{ item.title }}
-                  </span>
+                  <template v-if="isPreviewMode && !isCollapsed && item.meta?.componentPath">
+                    <div class="w-full aspect-video rounded overflow-hidden relative bg-white shadow-sm"
+                      :class="isActiveRoute(item.path) ? 'ring-2 ring-white/50' : 'border border-gray-300'">
+                      <ViewPreview :file-path="item.meta.componentPath" />
+                      <div class="absolute inset-0 z-10 transition-colors hover:bg-black/5"></div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="flex items-center justify-center flex-shrink-0" :class="isCollapsed ? 'mr-0' : 'mr-3'">
+                      <Icon v-if="item.icon" :name="item.icon" class="flex-shrink-0 transition-all duration-200"
+                        :size="20" />
+                    </div>
+                    <span v-if="!isCollapsed" class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                      {{ item.title }}
+                    </span>
+                  </template>
                 </router-link>
               </div>
             </li>
@@ -158,16 +184,17 @@
       </div>
     </Teleport>
 
-    <SettingsMenu v-if="isDev" :visible="settingsMenuVisible" :position="settingsMenuPosition" @keep-visible="keepSettingsMenu"
-      @hide="hideSettingsMenu" @app-settings="handleAppSettings" @route-settings="handleRouteSettings"
-      @theme-settings="handleThemeSettings" @icon-settings="handleIconSettings" @asset-settings="handleAssetSettings" />
+    <SettingsMenu v-if="isDev" :visible="settingsMenuVisible" :position="settingsMenuPosition"
+      @keep-visible="keepSettingsMenu" @hide="hideSettingsMenu" @app-settings="handleAppSettings"
+      @route-settings="handleRouteSettings" @theme-settings="handleThemeSettings" @icon-settings="handleIconSettings"
+      @asset-settings="handleAssetSettings" />
 
     <!-- 主题配置面板改为由父布局渲染，此处不再引入模态框 -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft, ChevronDown, Settings } from 'lucide-vue-next'
 import type { MenuItem } from '@/core/types/menu'
@@ -175,6 +202,7 @@ import { isRouteActive, hasActiveChild } from '@/core/utils/route-generator'
 
 import Icon from '@/components/layout/contentcommon/Icon.vue'
 import SettingsMenu from '@/layouts/SettingsMenu.vue'
+import ViewPreview from '@/components/editor/ViewPreview.vue'
 // 主题配置面板由父布局统一渲染
 
 /**
@@ -187,10 +215,17 @@ interface Props {
     title: string
     version?: string
     description?: string
+    features?: {
+      menuMode?: 'text' | 'preview'
+    }
   }
 }
 
 const props = defineProps<Props>()
+
+const isPreviewMode = computed(() => {
+  return props.appConfig.features?.menuMode === 'preview'
+})
 
 // 调试日志
 // console.log('ResponsiveSidebar - navigationItems:', props.navigationItems)
@@ -201,7 +236,7 @@ const props = defineProps<Props>()
 /**
  * 组件事件定义
  */
-const emit = defineEmits<{ 
+const emit = defineEmits<{
   (e: 'collapseChange', collapsed: boolean): void
   // 打开应用设置面板事件，由父布局接管渲染
   (e: 'openAppSettings'): void
@@ -295,35 +330,27 @@ const hasActiveChildRoute = (item: MenuItem): boolean => {
 const handleNavClick = (item: MenuItem): void => {
   // 如果有子菜单
   if (item.children && item.children.length > 0) {
-    // 检查当前是否已经在一级菜单页面或其子页面
-    const isCurrentlyActive = isActiveRoute(item.path) || hasActiveChildRoute(item)
     const isExpanded = isMenuExpanded(item.path)
-
-    // 如果菜单处于展开状态且处于非激活状态，点击时不切换折叠状态，直接导航
-    if (isExpanded && !isCurrentlyActive) {
-      router.push(item.path)
-      return
-    }
-
-    // 如果当前不在该菜单页面，先导航到一级菜单页面
-    if (!isCurrentlyActive) {
-      router.push(item.path)
-    }
 
     // 在非折叠状态切换展开状态
     if (!isCollapsed.value) {
       toggleMenuExpansion(item.path)
     }
 
-    // 如果已经在该菜单页面且菜单已展开，再次点击时导航到一级菜单页面
-    if (isCurrentlyActive && isExpanded) {
-      router.push(item.path)
+    // 父路由只是分组，不指向具体页面
+    // 当菜单展开或折叠模式下，导航到第一个子路由
+    if (!isExpanded || isCollapsed.value) {
+      const firstChild = item.children[0]
+      if (firstChild) {
+        router.push(firstChild.path)
+      }
     }
   } else {
     // 没有子菜单的项目进行路由跳转
     router.push(item.path)
   }
 }
+
 
 /**
   * 显示悬浮菜单

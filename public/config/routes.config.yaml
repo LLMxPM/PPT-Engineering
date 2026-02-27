@@ -5,7 +5,6 @@ routes:
       title: 首页
       icon: Home
       order: 0
-    children: []
   - route: contents
     component: '@/views/defaultpage/TableOfContentsPage.vue'
     meta:
@@ -13,12 +12,16 @@ routes:
       icon: List
       order: 1
   - route: feature-showcase
-    component: '@/views/feature-showcase/Index.vue'
     meta:
       title: 功能展示
       icon: Grid3x3
       order: 2
     children:
+      - route: index
+        component: '@/views/feature-showcase/Index.vue'
+        meta:
+          title: 功能展示首页
+          order: 0
       - route: theme-showcase
         component: '@/views/feature-showcase/ThemeShowcase.vue'
         meta:
@@ -45,12 +48,16 @@ routes:
           title: Monaco编辑器
           order: 5
   - route: generate-effect
-    component: '@/views/ppt-presentation/index.vue'
     meta:
       title: 自动生成效果章节
       icon: Presentation
       order: 3
     children:
+      - route: cover
+        component: '@/views/ppt-presentation/index.vue'
+        meta:
+          title: 章节封面
+          order: 0
       - route: project-overview
         component: '@/views/ppt-presentation/ProjectOverview.vue'
         meta:
@@ -97,12 +104,16 @@ routes:
           title: 总结
           order: 10
   - route: multi-round-dialog
-    component: '@/views/multi-round-dialog/CoverPage.vue'
     meta:
       title: 多轮对话调整
       icon: MessageSquare
       order: 4
     children:
+      - route: cover
+        component: '@/views/multi-round-dialog/CoverPage.vue'
+        meta:
+          title: 章节封面
+          order: 0
       - route: design-philosophy
         component: '@/views/multi-round-dialog/DesignPhilosophy.vue'
         meta:
@@ -124,11 +135,9 @@ routes:
       title: 测试多级目录
       icon: Bug
       order: 6
-    children: []
   - route: endpage
     component: '@/views/defaultpage/EndPage.vue'
     meta:
       title: 末页
       icon: Send
       order: 100
-    children: []

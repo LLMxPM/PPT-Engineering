@@ -89,7 +89,7 @@ export class PageCaptureService {
         const output = await result.toPng()
 
         // 规范化为 HTMLImageElement
-        const img: HTMLImageElement = (output instanceof HTMLImageElement)
+        let img: HTMLImageElement = (output instanceof HTMLImageElement)
           ? output
           : (() => {
               const i = new Image()
@@ -97,9 +97,9 @@ export class PageCaptureService {
               return i
             })()
 
-        const ensureImageLoaded = async (): Promise<HTMLImageElement> => {
+        const ensureImageLoaded = async (image: HTMLImageElement): Promise<HTMLImageElement> => {
           await new Promise<void>((resolve, reject) => {
-            if (img.complete && img.naturalWidth > 0) return resolve()
+            if (image.complete && image.naturalWidth > 0) return resolve()
             const onLoad = () => {
               cleanupLoad()
               resolve()
@@ -109,21 +109,21 @@ export class PageCaptureService {
               reject(new Error('图片解码失败'))
             }
             const cleanupLoad = () => {
-              img.removeEventListener('load', onLoad)
-              img.removeEventListener('error', onError)
+              image.removeEventListener('load', onLoad)
+              image.removeEventListener('error', onError)
             }
-            img.addEventListener('load', onLoad, { once: true })
-            img.addEventListener('error', onError, { once: true })
+            image.addEventListener('load', onLoad, { once: true })
+            image.addEventListener('error', onError, { once: true })
           })
-          if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+          if (image.naturalWidth === 0 || image.naturalHeight === 0) {
             throw new Error('图片尺寸无效')
           }
-          return img
+          return image
         }
 
-        let finalImg: HTMLImageElement
+        let finalImg: HTMLImageElement = img
         try {
-          finalImg = await ensureImageLoaded()
+          finalImg = await ensureImageLoaded(img)
         } catch (e) {
           // 使用代理重试
           if (mergedOptions.proxyUrl) {
@@ -132,12 +132,12 @@ export class PageCaptureService {
               useProxy: mergedOptions.proxyUrl
             })
             const proxiedOutput = await proxied.toPng()
-            finalImg = (proxiedOutput instanceof HTMLImageElement) ? proxiedOutput : (() => {
+            img = (proxiedOutput instanceof HTMLImageElement) ? proxiedOutput : (() => {
               const i = new Image()
               i.src = String(proxiedOutput)
               return i
             })()
-            await ensureImageLoaded()
+            finalImg = await ensureImageLoaded(img)
           } else {
             throw e
           }
@@ -150,8 +150,8 @@ export class PageCaptureService {
           throw new Error('无法创建Canvas上下文')
         }
 
-        baseCanvas.width = img.naturalWidth
-        baseCanvas.height = img.naturalHeight
+        baseCanvas.width = finalImg.naturalWidth
+        baseCanvas.height = finalImg.naturalHeight
 
         // 先填充背景色，避免透明背景问题
         if (mergedOptions.backgroundColor) {
@@ -162,7 +162,7 @@ export class PageCaptureService {
         // 绘制图片到基础Canvas
         baseCtx.imageSmoothingEnabled = true
         baseCtx.imageSmoothingQuality = 'high'
-        baseCtx.drawImage(img, 0, 0)
+        baseCtx.drawImage(finalImg, 0, 0)
 
         // 如果指定了目标宽/高，则按照目标尺寸生成最终Canvas
         let finalCanvas = baseCanvas
@@ -273,12 +273,17 @@ export class PageCaptureService {
       visibility: element.style.visibility,
       opacity: element.style.opacity,
       display: element.style.display,
+      transform: element.style.transform,
+      transformOrigin: element.style.transformOrigin,
+      width: element.style.width,
+      height: element.style.height,
       padding: element.style.padding,
       margin: element.style.margin,
       boxShadow: element.style.boxShadow,
       borderRadius: element.style.borderRadius,
       overflow: element.style.overflow,
-      backgroundClip: (element.style as any).backgroundClip
+      backgroundClip: (element.style as any).backgroundClip,
+      backgroundColor: element.style.backgroundColor
     }
     
     // 强制显示元素
@@ -320,16 +325,22 @@ export class PageCaptureService {
     // 4. 全幅捕获（移除装饰性的边距与阴影）
     try {
       const isLikelyPageContent = element.classList.contains('page-content') ||
-        /(page|content)/i.test(element.className)
+        element.classList.contains('fixed-ratio-container') ||
+        /(page|content|fixed-ratio)/i.test(element.className)
       if (isLikelyPageContent) {
         // 记录直接子元素的样式（路由视图容器）
         const child = element.firstElementChild as HTMLElement | null
         const childOriginal: any = child ? {
+          transform: child.style.transform,
+          transformOrigin: child.style.transformOrigin,
+          width: child.style.width,
+          height: child.style.height,
           padding: child.style.padding,
           margin: child.style.margin,
           boxShadow: child.style.boxShadow,
           borderRadius: child.style.borderRadius,
           overflow: child.style.overflow,
+          backgroundColor: child.style.backgroundColor
         } : null
 
         // 去除容器和其子元素的装饰确保无边距
@@ -346,6 +357,11 @@ export class PageCaptureService {
           child.style.boxShadow = 'none'
           child.style.borderRadius = '0'
           child.style.overflow = 'hidden'
+        }
+
+        if (element.classList.contains('fixed-ratio-container')) {
+          element.style.transform = 'none'
+          element.style.transformOrigin = '0 0'
         }
 
         cleanupFunctions.push(() => {
@@ -424,6 +440,8 @@ export class PageCaptureService {
   private findBestContentElement(): HTMLElement | null {
     // 扩展的查找选择器，按优先级排序
     const selectors = [
+      '.fixed-ratio-container',
+      '.page-content-wrapper',
       // Vue应用特定选择器
       '.page-content',
       '.main-content', 

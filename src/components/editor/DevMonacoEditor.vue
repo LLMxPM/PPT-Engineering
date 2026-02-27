@@ -1,9 +1,14 @@
 <template>
-  <div ref="containerRef" class="w-full h-full" :style="{ minHeight: height + 'px' }"></div>
+  <div class="w-full h-full relative" :style="{ minHeight: height + 'px' }">
+    <div ref="containerRef" class="w-full h-full"></div>
+    <div v-if="menuVisible && showSelectionMenu" class="absolute" :style="menuStyle">
+      <button @click="emitAddToDialog" class="px-2 py-1 text-[12px] rounded bg-blue-600 text-white hover:bg-blue-700">添加到对话</button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick, computed } from 'vue'
 import * as monaco from 'monaco-editor'
 import { configureMonacoYaml } from 'monaco-yaml'
 
@@ -32,6 +37,8 @@ interface Props {
   minimap?: boolean
   /** 最小高度（px） */
   height?: number
+  /** 是否展示选区悬浮菜单（仅 AI 助手模式开启） */
+  showSelectionMenu?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,7 +48,8 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
   lineNumbers: 'on',
   minimap: true,
-  height: 600
+  height: 600,
+  showSelectionMenu: false
 })
 
 const emit = defineEmits<{
@@ -49,6 +57,8 @@ const emit = defineEmits<{
   (e: 'update:modelValue', val: string): void
   /** 额外变更事件（包含源事件） */
   (e: 'change', val: string): void
+  /** 选择片段添加到对话 */
+  (e: 'selectionAddToDialog', payload: { startLine: number; endLine: number; startColumn: number; endColumn: number; text: string }): void
 }>()
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -57,6 +67,15 @@ let model: monaco.editor.ITextModel | null = null
 let suppressNextUpdate = false
 let resizeObserver: ResizeObserver | null = null
 let yamlConfigured = false
+const menuVisible = ref<boolean>(false)
+const menuTop = ref<number>(0)
+const menuLeft = ref<number>(0)
+const selectionCache = ref<{ startLine: number; endLine: number; startColumn: number; endColumn: number } | null>(null)
+
+/**
+ * 计算：悬浮菜单样式
+ */
+const menuStyle = computed<Record<string, string>>(() => ({ top: `${menuTop.value}px`, left: `${menuLeft.value}px` }))
 
 /**
  * 初始化编辑器实例
@@ -86,6 +105,27 @@ function initEditor() {
     suppressNextUpdate = true
     emit('update:modelValue', val)
     emit('change', val)
+  })
+
+  editor.onDidChangeCursorSelection((e) => {
+    if (!editor || !model) return
+    if (!props.showSelectionMenu) { menuVisible.value = false; selectionCache.value = null; return }
+    const sel = e.selection
+    const isEmpty = sel.startLineNumber === sel.endLineNumber && sel.startColumn === sel.endColumn
+    if (isEmpty) { menuVisible.value = false; selectionCache.value = null; return }
+    selectionCache.value = {
+      startLine: sel.startLineNumber,
+      startColumn: sel.startColumn,
+      endLine: sel.endLineNumber,
+      endColumn: sel.endColumn
+    }
+    const pos = editor.getScrolledVisiblePosition({ lineNumber: sel.startLineNumber, column: sel.startColumn })
+    const layout = editor.getLayoutInfo()
+    const top = (pos?.top || 0) + 4
+    const left = (layout?.contentLeft || 8) + 8
+    menuTop.value = top
+    menuLeft.value = left
+    menuVisible.value = true
   })
 
   // 自适应容器尺寸
@@ -153,6 +193,18 @@ function setSelection(startLine: number, startColumn: number, endLine: number, e
   editor.setSelection({ startLineNumber: startLine, startColumn, endLineNumber: endLine, endColumn })
   editor.revealRangeInCenter({ startLineNumber: startLine, startColumn, endLineNumber: endLine, endColumn })
   editor.focus()
+}
+
+/**
+ * 函数：发出“添加到对话”的片段事件
+ */
+function emitAddToDialog(): void {
+  if (!model || !selectionCache.value) return
+  const s = selectionCache.value
+  const range = new monaco.Range(s.startLine, s.startColumn, s.endLine, s.endColumn)
+  const text = model.getValueInRange(range) || ''
+  emit('selectionAddToDialog', { startLine: s.startLine, endLine: s.endLine, startColumn: s.startColumn, endColumn: s.endColumn, text })
+  menuVisible.value = false
 }
 
 defineExpose({ revealPosition, setSelection })

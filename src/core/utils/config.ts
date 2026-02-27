@@ -27,6 +27,7 @@ export interface AppConfig {
     baseUrl?: string
     features?: {
       showPdfExportButton?: boolean
+      menuMode?: 'text' | 'preview'
     }
   }
 }
@@ -37,7 +38,7 @@ export interface AppConfig {
 export interface RouteConfigYaml {
   routes: Array<{
     route: string
-    component: string // 父路由现在也需要指定组件
+    component?: string // 有子路由时可选（分组路由不需要组件），无子路由时必须指定
     meta: {
       title: string
       icon?: string
@@ -90,7 +91,8 @@ const defaultAppConfig: AppConfig = {
     description: 'ppt演示应用',
     baseUrl: '/PPT-Engineering/',
     features: {
-      showPdfExportButton: true
+      showPdfExportButton: true,
+      menuMode: 'text'
     }
   }
 }
@@ -118,16 +120,16 @@ function getDefaultRedirectPath(): string {
   if (!configState.routeConfig?.routes) {
     return 'home' // 默认回退路径
   }
-  
+
   // 找到order最小的路由
   const sortedRoutes = [...configState.routeConfig.routes]
     .filter(route => !route.meta.hidden) // 过滤隐藏路由
     .sort((a, b) => a.meta.order - b.meta.order)
-  
+
   if (sortedRoutes.length > 0) {
     return sortedRoutes[0].route
   }
-  
+
   return 'home' // 默认回退路径
 }
 
@@ -172,24 +174,24 @@ function dynamicImport(componentPath: string): () => Promise<any> {
         ...import.meta.glob('@/views/**/*.vue'),
         ...import.meta.glob('/src/views/**/*.vue')
       }
-      
+
       // 调试：打印所有可用的模块键
 
-      
+
       // 规范化组件路径
       const normalizedPath = componentPath.startsWith('@/') ? componentPath : `@/${componentPath}`
-      
+
       // 在所有可用的模块中查找匹配的路径
       let moduleLoader = modules[normalizedPath]
-      
-      
+
+
       // 如果直接匹配失败，尝试路径变换匹配
       if (!moduleLoader) {
         // 检查是否需要进行路径转换 (@/ -> /src/)
         const moduleKeys = Object.keys(modules)
         // console.warn(`组件路径 "${componentPath}" 未找到。规范化路径: "${normalizedPath}"`)
         // console.warn('可用的组件路径:', moduleKeys)
-        
+
         // 尝试将 @/ 转换为 /src/ 进行匹配
         const srcPath = normalizedPath.replace('@/', '/src/')
         // console.log('尝试转换为src路径:', srcPath)
@@ -204,14 +206,14 @@ function dynamicImport(componentPath: string): () => Promise<any> {
             const keyFileName = key.split('/').pop()
             return keyFileName === fileName
           })
-          
+
           if (matchingKey) {
             moduleLoader = modules[matchingKey]
             console.log(`通过文件名匹配找到组件: ${matchingKey}`)
           }
         }
       }
-      
+
       if (moduleLoader) {
         return await moduleLoader()
       } else {
@@ -285,12 +287,12 @@ async function loadYamlFromUrl<T>(url: string, useCache = true): Promise<T> {
     }
     const yamlText = await response.text()
     const config = parse(yamlText) as T
-    
+
     // 缓存配置
     if (useCache) {
       configCache.set(url, config)
     }
-    
+
     return config
   } catch (error) {
     console.error(`Error loading YAML config from ${url}:`, error)
@@ -320,15 +322,15 @@ export async function loadAppConfig(force = false): Promise<AppConfig> {
     try {
       configState.isLoading = true
       configState.error = null
-      
+
       const configUrl = buildConfigUrl('config/app.config.yaml')
       configState.appConfig = await loadYamlFromUrl<AppConfig>(configUrl, !force)
-      
+
       notifyListeners('app')
     } catch (error) {
       console.warn('Failed to load app config from YAML, using default config:', error)
       configState.appConfig = { ...defaultAppConfig }
-      
+
       configState.error = error instanceof Error ? error.message : 'Unknown error'
     } finally {
       configState.isLoading = false
@@ -347,10 +349,10 @@ export async function loadRouteConfig(force = false): Promise<RouteConfigYaml> {
     try {
       configState.isLoading = true
       configState.error = null
-      
+
       const configUrl = buildConfigUrl('config/routes.config.yaml')
       configState.routeConfig = await loadYamlFromUrl<RouteConfigYaml>(configUrl, !force)
-      
+
       notifyListeners('routes')
     } catch (error) {
       console.warn('Failed to load route config from YAML, using default config:', error)
@@ -373,10 +375,10 @@ export async function loadIconConfig(force = false): Promise<IconConfigYaml> {
     try {
       configState.isLoading = true
       configState.error = null
-      
+
       const configUrl = buildConfigUrl('config/icons.config.yaml')
       configState.iconConfig = await loadYamlFromUrl<IconConfigYaml>(configUrl, !force)
-      
+
       notifyListeners('icons')
     } catch (error) {
       console.warn('Failed to load icon config from YAML, using default config:', error)
@@ -400,24 +402,27 @@ export async function loadIconConfig(force = false): Promise<IconConfigYaml> {
 function calculatePageNumbers(yamlRoutes: RouteConfigYaml['routes']): RouteConfigYaml['routes'] {
   // 创建副本以避免修改原始数据
   const routes = JSON.parse(JSON.stringify(yamlRoutes))
-  
+
   // 按order排序路由
   routes.sort((a: any, b: any) => (a.meta.order || 0) - (b.meta.order || 0))
-  
+
   let currentPageNumber = 1
-  
+
   routes.forEach((route: any) => {
-    // 为父路由分配页码（新规则）
-    if (!route.meta?.hidden) {
+    const hasChildren = route.children && route.children.length > 0
+
+    // 有子路由的父路由只是分组，不分配页码
+    // 没有子路由的路由是独立页面，分配页码
+    if (!hasChildren && !route.meta?.hidden) {
       route.meta.pageNumber = currentPageNumber
       currentPageNumber++
     }
-    
+
     // 为子路由分配页码
-    if (route.children && route.children.length > 0) {
+    if (hasChildren) {
       // 按order排序子路由
       route.children.sort((a: any, b: any) => (a.meta.order || 0) - (b.meta.order || 0))
-      
+
       route.children.forEach((child: any) => {
         // 排除hidden的路由
         if (!child.meta?.hidden) {
@@ -427,7 +432,7 @@ function calculatePageNumbers(yamlRoutes: RouteConfigYaml['routes']): RouteConfi
       })
     }
   })
-  
+
   return routes
 }
 
@@ -439,20 +444,28 @@ function calculatePageNumbers(yamlRoutes: RouteConfigYaml['routes']): RouteConfi
 function convertYamlRoutesToRouteConfig(yamlRoutes: RouteConfigYaml['routes']): RouteConfig[] {
   // 先计算页码
   const routesWithPageNumbers = calculatePageNumbers(yamlRoutes)
-  
+
   return routesWithPageNumbers.map(route => {
+    const hasChildren = route.children && route.children.length > 0
+
     const routeConfig: RouteConfig = {
       path: route.route,
       title: route.meta.title,
       name: route.route,
       order: route.meta.order,
       pageNumber: route.meta.pageNumber,
-      component: route.component ? dynamicImport(route.component) : dynamicImport('@/views/default/NotFoundPage.vue'),
-      meta: route.meta
+      // 有子路由时父路由只是分组，不需要组件；无子路由时必须指定组件
+      component: hasChildren
+        ? undefined
+        : (route.component ? dynamicImport(route.component) : dynamicImport('@/views/default/NotFoundPage.vue')),
+      meta: {
+        ...route.meta,
+        componentPath: route.component // 保存原始组件路径供渲染预览可用
+      }
     }
 
-    if (route.children && route.children.length > 0) {
-      routeConfig.children = route.children.map(child => {
+    if (hasChildren) {
+      routeConfig.children = route.children!.map(child => {
         const childConfig = {
           path: child.route,
           title: child.meta?.title || child.route,
@@ -461,7 +474,8 @@ function convertYamlRoutesToRouteConfig(yamlRoutes: RouteConfigYaml['routes']): 
           component: child.component ? dynamicImport(child.component) : dynamicImport('@/views/default/NotFoundPage.vue'),
           meta: {
             ...child.meta,
-            parent: route.route
+            parent: route.route,
+            componentPath: child.component // 保存原始组件路径供渲染预览可用
           }
         }
         return childConfig
