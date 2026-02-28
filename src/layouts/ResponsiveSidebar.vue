@@ -36,15 +36,18 @@
           class="h-full overflow-y-auto overflow-x-hidden p-4 py-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
           :class="isCollapsed ? 'scrollbar-none' : ''">
           <ul class="list-none m-0 p-0">
-            <li v-for="item in navigationItems" :key="item.path" class="mb-1">
-              <div v-if="item.children && item.children.length > 0" class="relative">
+            <li v-for="item in navigationItems" :key="item.path"
+              :class="[isPreviewMode && !isCollapsed ? 'mb-2' : 'mb-1']">
+              <div v-if="item.children && item.children.length > 0" class="relative transition-all duration-300"
+                :class="isPreviewMode && !isCollapsed ? 'bg-slate-100 rounded-2xl py-2 mx-3 border border-slate-200/80 shadow-sm' : ''">
                 <div class="relative" @mouseenter="isCollapsed ? showHoverMenu(item.path, $event) : null"
                   @mouseleave="isCollapsed ? hideHoverMenu() : null">
                   <div
-                    class="flex items-center text-gray-500 no-underline rounded-xl transition-all duration-200 relative mx-2 cursor-pointer"
+                    class="flex items-center text-gray-500 no-underline rounded-xl transition-all duration-200 relative cursor-pointer"
                     :class="[
+                      (!isPreviewMode || isCollapsed) ? 'mx-2' : 'mx-1',
                       isPreviewMode
-                        ? (hasActiveChildRoute(item) ? 'text-blue-600 font-bold text-xs py-2 px-4 uppercase tracking-wider' : 'text-gray-400 font-bold text-xs py-2 px-4 uppercase tracking-wider hover:text-gray-600')
+                        ? (hasActiveChildRoute(item) ? 'text-blue-600 font-bold text-xs py-2 px-3 uppercase tracking-wider' : 'text-gray-400 font-bold text-xs py-2 px-3 uppercase tracking-wider hover:text-gray-600')
                         : 'py-3 px-4 font-medium ' + (isActiveRoute(item.path)
                           ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50 hover:bg-blue-600 hover:text-white' + (isCollapsed ? '' : ' hover:translate-x-1')
                           : hasActiveChildRoute(item)
@@ -92,7 +95,8 @@
 
                 <transition name="submenu-slide">
                   <ul v-if="isMenuExpanded(item.path) && !isCollapsed"
-                    class="list-none mt-2 mb-0 mx-0 p-1 py-0 bg-gray-50 rounded-xl overflow-hidden">
+                    class="list-none mt-2 mb-0 mx-0 py-0 rounded-xl overflow-hidden"
+                    :class="isPreviewMode ? 'bg-transparent p-0' : 'bg-gray-50 p-1'">
                     <li v-for="child in item.children" :key="child.path" class="m-0">
                       <div
                         @mouseenter="isPreviewMode ? showSimpleTooltip(child.title, $event) : showPreviewTooltip(child, $event)"
@@ -100,7 +104,7 @@
                         <router-link :to="child.path"
                           class="flex items-center text-gray-500 no-underline rounded-lg text-[14px] transition-all duration-200"
                           :class="[
-                            (isPreviewMode && child.meta?.componentPath) ? 'p-2 mx-2 mb-2' : 'py-2 px-4 pl-8 mx-2 my-0.5',
+                            (isPreviewMode && child.meta?.componentPath) ? 'p-1.5 mx-1.5 mb-2' : 'py-2 px-4 pl-8 mx-2 my-0.5',
                             isActiveRoute(child.path)
                               ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 hover:text-white hover:translate-x-1'
                               : 'hover:bg-gray-200 hover:translate-x-1 hover:shadow-sm'
