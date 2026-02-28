@@ -52,9 +52,9 @@
                             : 'hover:bg-gray-100 hover:text-gray-700' + (isCollapsed ? ' hover:scale-110' : ' hover:translate-x-1')),
                       isCollapsed ? (isPreviewMode ? 'justify-center p-2 mx-2' : 'justify-center p-3 mx-2') : ''
                     ]" @click="handleNavClick(item)">
-                    <div class="flex items-center justify-center flex-shrink-0" :class="isCollapsed ? 'mr-0' : 'mr-3'">
-                      <Icon v-if="item.icon" :name="item.icon" class="flex-shrink-0 transition-all duration-200"
-                        :size="isPreviewMode ? 14 : 20" />
+                    <div v-if="isCollapsed"
+                      class="flex items-center justify-center flex-shrink-0 font-bold text-[16px] text-gray-500 w-5 h-5">
+                      {{ item.title.charAt(0).toUpperCase() }}
                     </div>
                     <span v-if="!isCollapsed" class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
                       {{ item.title }}
@@ -143,9 +143,9 @@
                     </div>
                   </template>
                   <template v-else>
-                    <div class="flex items-center justify-center flex-shrink-0" :class="isCollapsed ? 'mr-0' : 'mr-3'">
-                      <Icon v-if="item.icon" :name="item.icon" class="flex-shrink-0 transition-all duration-200"
-                        :size="20" />
+                    <div v-if="isCollapsed"
+                      class="flex items-center justify-center flex-shrink-0 font-bold text-[16px] text-gray-500 w-5 h-5">
+                      {{ item.title.charAt(0).toUpperCase() }}
                     </div>
                     <span v-if="!isCollapsed" class="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
                       {{ item.title }}
@@ -215,15 +215,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft, ChevronDown, Settings } from 'lucide-vue-next'
 import type { MenuItem } from '@/core/types/menu'
 import { isRouteActive, hasActiveChild } from '@/core/utils/route-generator'
 
 import Icon from '@/components/layout/contentcommon/Icon.vue'
-import SettingsMenu from '@/layouts/SettingsMenu.vue'
 import ViewPreview from '@/components/editor/ViewPreview.vue'
+
+const isDev = import.meta.env.DEV
+const SettingsMenu = isDev ? defineAsyncComponent(() => import('@/layouts/SettingsMenu.vue')) : null as any
 // 主题配置面板由父布局统一渲染
 
 /**
@@ -302,7 +304,6 @@ const settingsMenuTimer = ref<number | null>(null)
  */
 const route = useRoute()
 const router = useRouter()
-const isDev = import.meta.env.DEV
 
 
 

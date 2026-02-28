@@ -1,17 +1,14 @@
 <template>
-  <DefaultContentPage 
-    title="主题系统展示"
-    subtitle="基于Tailwind扩展的变量，随着主题设置而变化"
-  >
+  <DefaultContentPage title="主题系统展示" subtitle="基于Tailwind扩展的变量，随着主题设置而变化">
     <template #content>
       <div class="space-y-8 p-6">
         <!-- 文本色系统展示 -->
         <section class="bg-background-subtle border border-border-subtle rounded-lg p-6">
           <div class="flex items-center mb-6">
-            <Icon name="Type"  class="mr-3 text-primary" />
+            <Icon name="Type" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">文本色系统</h2>
           </div>
-          
+
           <!-- Primary 文本色 -->
           <div class="mb-6">
             <h3 class="font-heading text-lg font-semibold text-primary mb-3">Primary 文本色（完整色阶）</h3>
@@ -108,7 +105,7 @@
             <Icon name="Paintbrush" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">背景色系统</h2>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Background 色阶 -->
             <div>
@@ -143,7 +140,7 @@
                   <span class="text-invert-100">反色背景 100 (bg-background-invert-100)</span>
                 </div>
                 <div class="bg-background-invert-300 border border-border p-4 rounded">
-                  <span class="text-invert-300">反色背景 300 (bg-background-invert-300)</span> 
+                  <span class="text-invert-300">反色背景 300 (bg-background-invert-300)</span>
                 </div>
                 <div class="bg-background-invert-500 border border-border p-4 rounded">
                   <span class="text-invert-500">反色背景 500 (bg-background-invert-500)</span>
@@ -162,7 +159,7 @@
             <Icon name="Square" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">边框色系统</h2>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 class="font-heading text-lg font-semibold text-primary mb-3">Border 边框色</h3>
@@ -204,7 +201,7 @@
             <Icon name="Link" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">链接色系统</h2>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <h3 class="font-heading text-lg font-semibold text-primary mb-3">默认链接色</h3>
@@ -239,7 +236,7 @@
             <Icon name="Zap" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">强调色系统</h2>
           </div>
-          
+
           <!-- 六个强调色展示 -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Accent1 -->
@@ -328,7 +325,7 @@
             <Icon name="Type" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">字体系统</h2>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- 字体家族 -->
             <div>
@@ -392,11 +389,12 @@
             <Icon name="Layout" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-2xl font-bold text-primary">实际应用示例</h2>
           </div>
-          
+
           <!-- 卡片示例 -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- 产品卡片 -->
-            <div class="bg-background border border-border rounded-lg overflow-hidden hover:border-primary-300 transition-colors">
+            <div
+              class="bg-background border border-border rounded-lg overflow-hidden hover:border-primary-300 transition-colors">
               <div class="bg-accent1-100 p-4">
                 <h3 class="font-heading text-lg text-accent1-800">产品展示</h3>
               </div>
@@ -412,7 +410,8 @@
             </div>
 
             <!-- 状态卡片 -->
-            <div class="bg-background border border-border rounded-lg overflow-hidden hover:border-secondary-300 transition-colors">
+            <div
+              class="bg-background border border-border rounded-lg overflow-hidden hover:border-secondary-300 transition-colors">
               <div class="bg-accent2-100 p-4">
                 <h3 class="font-heading text-lg text-accent2-800">项目状态</h3>
               </div>
@@ -433,7 +432,8 @@
             </div>
 
             <!-- 数据卡片 -->
-            <div class="bg-background border border-border rounded-lg overflow-hidden hover:border-tertiary-300 transition-colors">
+            <div
+              class="bg-background border border-border rounded-lg overflow-hidden hover:border-tertiary-300 transition-colors">
               <div class="bg-accent3-100 p-4">
                 <h3 class="font-heading text-lg text-accent3-800">数据统计</h3>
               </div>

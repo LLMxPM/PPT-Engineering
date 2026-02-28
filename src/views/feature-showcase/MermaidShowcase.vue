@@ -1,8 +1,5 @@
 <template>
-  <DefaultContentPage 
-    title="Mermaid 图表展示"
-    subtitle="支持各类 Mermaid 图表的渲染"
-  >
+  <DefaultContentPage title="Mermaid 图表展示" subtitle="支持各类 Mermaid 图表的渲染">
     <template #content>
       <div class="space-y-8 p-6">
         <!-- 控制面板 -->
@@ -11,15 +8,13 @@
             <Icon name="Settings" :size="24" class="mr-3 text-primary" />
             <h2 class="font-heading text-xl font-bold text-primary">图表控制面板</h2>
           </div>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- 主题选择 -->
             <div>
               <label class="block text-sm font-medium text-primary mb-2">主题</label>
-              <select 
-                v-model="selectedTheme" 
-                class="w-full px-3 py-2 border border-border rounded-md bg-background text-primary focus:outline-none focus:ring-2 focus:ring-primary-300"
-              >
+              <select v-model="selectedTheme"
+                class="w-full px-3 py-2 border border-border rounded-md bg-background text-primary focus:outline-none focus:ring-2 focus:ring-primary-300">
                 <option value="default">默认</option>
                 <option value="dark">深色</option>
                 <option value="forest">森林</option>
@@ -30,10 +25,8 @@
             <!-- 图表类型选择 -->
             <div>
               <label class="block text-sm font-medium text-primary mb-2">图表类型</label>
-              <select 
-                v-model="selectedDiagramType" 
-                class="w-full px-3 py-2 border border-border rounded-md bg-background text-primary focus:outline-none focus:ring-2 focus:ring-primary-300"
-              >
+              <select v-model="selectedDiagramType"
+                class="w-full px-3 py-2 border border-border rounded-md bg-background text-primary focus:outline-none focus:ring-2 focus:ring-primary-300">
                 <option value="flowchart">流程图</option>
                 <option value="sequence">时序图</option>
                 <option value="gantt">甘特图</option>
@@ -46,10 +39,8 @@
 
             <!-- 操作按钮 -->
             <div class="flex space-x-2 items-end">
-              <button 
-                @click="refreshDiagram"
-                class="px-4 py-2 bg-background border border-border text-primary rounded-md hover:bg-primary-600 transition-colors text-sm"
-              >
+              <button @click="refreshDiagram"
+                class="px-4 py-2 bg-background border border-border text-primary rounded-md hover:bg-primary-600 transition-colors text-sm">
                 刷新
               </button>
             </div>
@@ -71,15 +62,10 @@
               </div>
             </div>
           </div>
-          
+
           <div class="p-6">
-            <MermaidChart
-              ref="mermaidChart"
-              :content="currentDiagramContent"
-              :theme="selectedTheme"
-              height="500px"
-              width="100%"
-            />
+            <MermaidChart ref="mermaidChart" :content="currentDiagramContent" :theme="selectedTheme" height="500px"
+              width="100%" />
           </div>
         </section>
 
@@ -129,7 +115,7 @@ const diagramTypes = {
     participant U as 用户
     participant F as 前端
     participant B as 后端
-    participant D as 数据库
+    participant D as 数据库;  
     
     U->>F: 点击登录按钮
     F->>B: 发送登录请求
@@ -260,7 +246,7 @@ const refreshDiagram = async () => {
   }
 }
 
- 
+
 
 /**
  * 复制代码

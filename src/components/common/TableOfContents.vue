@@ -4,34 +4,28 @@
   从路由配置自动生成目录列表，支持两列布局、页码显示以及点击跳转。
 -->
 <template>
-  <div 
-    class="w-full h-full flex flex-col text-primary bg-transparent p-8 box-border"
-    :style="containerStyles"
-  >
+  <div class="w-full h-full flex flex-col text-primary bg-transparent p-8 box-border" :style="containerStyles">
     <!-- 目录列表 -->
-    <div 
-      class="min-h-0 h-full flex-1"
-      :class="listLayoutClass"
-    >
-      <div 
-        v-for="(item, index) in displayItems" 
-        :key="item.id"
-        class="relative m-0 flex items-center flex-1"
+    <div class="min-h-0 h-full flex-1" :class="listLayoutClass">
+      <div v-for="(item, index) in displayItems" :key="item.id" class="relative m-0 flex items-center flex-1"
         :class="[itemPaddingClass, clickable ? 'group cursor-pointer transition-all duration-300 ease-in-out hover:translate-x-1' : '']"
-        @click="handleItemClick(item)"
-      >
-        <div class="flex items-center transition-all duration-300 font-body w-full" :class="[contentGapClass, clickable ? 'group-hover:text-primary' : '']" :style="contentFontStyle">
+        @click="handleItemClick(item)">
+        <div class="flex items-center transition-all duration-300 font-body w-full"
+          :class="[contentGapClass, clickable ? 'group-hover:text-primary' : '']" :style="contentFontStyle">
           <!-- 序号 -->
-          <span class="inline-flex items-center justify-end font-bold shrink-0 text-right" :style="numberStyle">{{ formatNumber(index + 1) }}</span>
-          
+          <span class="inline-flex items-center justify-end font-bold shrink-0 text-right" :style="numberStyle">{{
+            formatNumber(index + 1) }}</span>
+
           <!-- 标题 -->
           <span class="break-words">{{ item.title }}</span>
-          
+
           <!-- 连接线（虚线） -->
           <div v-if="showDots" class="flex-1 mx-2 h-px border-t border-dotted border-zinc-500 opacity-80"></div>
-          
+
           <!-- 页码 -->
-          <span v-if="showPageNumbers" class="inline-flex items-center justify-center px-2 py-1 rounded shrink-0 text-secondary font-medium min-w-[2rem] text-center" :style="pageFontStyle">
+          <span v-if="showPageNumbers"
+            class="inline-flex items-center justify-center px-2 py-1 rounded shrink-0 text-secondary font-medium min-w-[2rem] text-center"
+            :style="pageFontStyle">
             {{ getPageNumber(item, index) }}
           </span>
         </div>
@@ -43,10 +37,10 @@
 <script setup lang="ts">
 import { computed, type CSSProperties } from 'vue'
 import { useRouter } from 'vue-router'
-import { 
-  getVisibleRouteInfos,
+import {
   getPageNumberByPath
 } from '@/core/utils/route-generator'
+import { routeConfigs } from '@/core/utils/config'
 
 /**
  * 目录组件
@@ -124,7 +118,7 @@ const props = withDefaults(defineProps<Props>(), {
   twoColumn: false,
   columnBreakpoint: 6,
   pageStartNumber: 1, // 添加默认值
-  excludeRoutes: () => ['home','contents', 'endpage'], // 默认排除首页、目录和末页
+  excludeRoutes: () => ['home', 'contents', 'endpage'], // 默认排除首页、目录和末页
   width: '100%',
   height: '100%',
   autoFontSize: true
@@ -141,34 +135,49 @@ const routeItems = computed((): TOCItem[] => {
     return props.customItems
   }
 
-  // 直接使用 route-generator.ts 提供的函数获取可见路由
-  const visibleRoutes = getVisibleRouteInfos()
-  
-  // 过滤和转换为目录项
-  return visibleRoutes
-    .filter(routeInfo => {
-      // 检查是否在排除列表中
-      if (props.excludeRoutes.includes(routeInfo.path) || props.excludeRoutes.includes(routeInfo.path.replace(/^\/|\/$/g, ''))) {
-        return false
+  const items: TOCItem[] = []
+
+  // 从 routeConfigs 中获取0级别路由作为章节
+  routeConfigs.value.forEach(route => {
+    // 检查是否在排除列表中
+    if (props.excludeRoutes.includes(route.path) || props.excludeRoutes.includes(`/${route.path}`) || route.meta?.hidden) {
+      return
+    }
+
+    // 如果有子路由（即该路由指向一个章节组合）
+    const hasChildren = route.children && route.children.length > 0
+    if (hasChildren) {
+      // 找到第一个非隐藏的子路由页面
+      const firstVisibleChild = route.children?.find(child => !child.meta?.hidden)
+
+      if (firstVisibleChild) {
+        items.push({
+          id: route.name || route.title,
+          title: route.title || route.meta?.title || route.name,
+          path: `/${route.path}/${firstVisibleChild.path}`, // 完整路径
+          icon: route.meta?.icon,
+          pageNumber: firstVisibleChild.pageNumber || firstVisibleChild.meta?.pageNumber
+        })
       }
-      
-      // 只显示父路由（level 0），排除子路由
-      return routeInfo.level === 0
-    })
-    .map(routeInfo => ({
-      id: routeInfo.name,
-      title: routeInfo.name,
-      path: routeInfo.path,
-      icon: routeInfo.icon,
-      pageNumber: routeInfo.pageNumber  
-    }))
-    .sort((a, b) => {
-      // 如果有页码，按页码排序；否则按字母顺序排序
-      if (a.pageNumber && b.pageNumber) {
-        return a.pageNumber - b.pageNumber
-      }
-      return a.title.localeCompare(b.title)
-    })
+    } else {
+      // 没有子路由，直接作为独立页面显示
+      items.push({
+        id: route.name || route.title,
+        title: route.title || route.meta?.title || route.name,
+        path: `/${route.path}`,
+        icon: route.meta?.icon,
+        pageNumber: route.pageNumber || route.meta?.pageNumber
+      })
+    }
+  })
+
+  return items.sort((a, b) => {
+    // 如果有页码，按页码排序；否则按字母顺序排序
+    if (a.pageNumber && b.pageNumber) {
+      return Number(a.pageNumber) - Number(b.pageNumber)
+    }
+    return a.title.localeCompare(b.title)
+  })
 })
 
 /**
@@ -184,12 +193,12 @@ const getPageNumber = (item: TOCItem, index: number): string => {
   if (props.pageNumbers && props.pageNumbers[index] !== undefined) {
     return props.pageNumbers[index].toString()
   }
-  
+
   // 2. 使用目录项自带的页码（从路由配置中获取）
   if (item.pageNumber) {
     return item.pageNumber.toString()
   }
-  
+
   // 3. 通过路径从 route-generator 获取页码
   if (item.path && props.useAutoPageNumbers) {
     const pageNumber = getPageNumberByPath(item.path)
@@ -197,7 +206,7 @@ const getPageNumber = (item: TOCItem, index: number): string => {
       return pageNumber.toString()
     }
   }
-  
+
   // 4. 后备方案：使用起始页码递增
   return (props.pageStartNumber + index).toString()
 }
@@ -209,7 +218,7 @@ const calculateFontSize = (baseSize: number, itemCount: number): string => {
   if (!props.autoFontSize) {
     return `${baseSize}px`
   }
-  
+
   // 根据目录数量调整字体大小
   if (itemCount <= 5) {
     return `${baseSize}px`
@@ -275,7 +284,7 @@ const contentGapClass = computed(() => {
 const contentFontStyle = computed((): CSSProperties => {
   const itemCount = displayItems.value.length
   const baseFontSize = props.contentFontSize ? parseInt(props.contentFontSize) : 50
-  
+
   return {
     fontSize: props.contentFontSize || calculateFontSize(baseFontSize, itemCount)
   }
@@ -287,7 +296,7 @@ const contentFontStyle = computed((): CSSProperties => {
 const numberStyle = computed((): CSSProperties => {
   const itemCount = displayItems.value.length
   const baseFontSize = props.numberFontSize ? parseInt(props.numberFontSize) : 50
-  
+
   // 根据序号格式类型确定基础宽度
   let baseWidth: number
   switch (props.numberFormat) {
@@ -308,7 +317,7 @@ const numberStyle = computed((): CSSProperties => {
     default:
       baseWidth = 180
   }
-  
+
   // 根据目录项数量调整宽度（自动字体大小时）
   let finalWidth = baseWidth
   if (props.autoFontSize) {
@@ -322,7 +331,7 @@ const numberStyle = computed((): CSSProperties => {
       finalWidth = Math.max(baseWidth * 0.7, baseWidth * 0.5)
     }
   }
-  
+
   return {
     width: `${finalWidth}px`,
     minWidth: `${Math.min(finalWidth, 40)}px`, // 设置最小宽度
@@ -341,7 +350,7 @@ const numberStyle = computed((): CSSProperties => {
 const pageFontStyle = computed((): CSSProperties => {
   const itemCount = displayItems.value.length
   const baseFontSize = props.pageFontSize ? parseInt(props.pageFontSize) : 40
-  
+
   return {
     fontSize: props.pageFontSize || calculateFontSize(baseFontSize, itemCount)
   }
@@ -389,7 +398,7 @@ defineExpose({
     // 触发重新计算
     routeItems.value
   },
-  
+
   /**
    * 获取当前目录项
    */

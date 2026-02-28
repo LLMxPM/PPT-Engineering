@@ -3,18 +3,15 @@ routes:
     component: '@/views/defaultpage/HomePage.vue'
     meta:
       title: 首页
-      icon: Home
       order: 0
   - route: contents
     component: '@/views/defaultpage/TableOfContentsPage.vue'
     meta:
       title: 目录
-      icon: List
       order: 1
   - route: feature-showcase
     meta:
       title: 功能展示
-      icon: Grid3x3
       order: 2
     children:
       - route: index
@@ -42,15 +39,19 @@ routes:
         meta:
           title: 连接线演示
           order: 4
-      - route: monaco-editor-demo
-        component: '@/views/feature-showcase/MonacoEditorDemo.vue'
+      - route: config-ui
+        component: '@/views/feature-showcase/ConfigUI.vue'
         meta:
-          title: Monaco编辑器
+          title: 配置UI
           order: 5
+      - route: simple-page-edit
+        component: '@/views/feature-showcase/SimplePageEdit.vue'
+        meta:
+          title: 页面简单编辑
+          order: 6
   - route: generate-effect
     meta:
       title: 自动生成效果章节
-      icon: Presentation
       order: 3
     children:
       - route: cover
@@ -106,7 +107,6 @@ routes:
   - route: multi-round-dialog
     meta:
       title: 多轮对话调整
-      icon: MessageSquare
       order: 4
     children:
       - route: cover
@@ -133,5 +133,4 @@ routes:
     component: '@/views/defaultpage/EndPage.vue'
     meta:
       title: 末页
-      icon: Send
       order: 100

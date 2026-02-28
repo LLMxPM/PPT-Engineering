@@ -79,7 +79,7 @@
                   <!-- 在标题前显示排序数字 -->
                   <span
                     class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{
-                    route.meta?.order }}</span>
+                      route.meta?.order }}</span>
                   <span class="font-medium text-gray-900 text-[14px] truncate">{{ route.meta?.title || '未命名' }}</span>
                   <!-- <span class="text-[11px] text-gray-500 truncate">{{ route.route }}</span> -->
                 </div>
@@ -122,7 +122,7 @@
                           <!-- 在子路由标题前显示排序数字 -->
                           <span
                             class="inline-flex items-center justify-center w-5 h-5 rounded bg-blue-200 text-blue-800 text-[11px] shrink-0">{{
-                            child.meta?.order }}</span>
+                              child.meta?.order }}</span>
                           <span class="font-medium text-gray-800 text-[13px] truncate">{{ child.meta?.title || '未命名子路由'
                           }}</span>
                           <!-- <span class="text-[11px] text-gray-500 truncate">{{ child.route }}</span> -->
@@ -172,7 +172,6 @@ import ConfirmModal from '@/components/editor/ConfirmModal.vue'
 
 interface RouteMeta {
   title: string
-  icon?: string
   order: number
 }
 
@@ -227,17 +226,17 @@ const markAsChanged = () => {
 const editor = ref<{
   visible: boolean
   mode: 'add' | 'edit'
-  type: 'route' | 'child'
+  type: 'group' | 'page' | 'child'
   routeIndex?: number
   childIndex?: number
   parentRoute?: string
-  form: { route: string; component: string; meta: { title: string; icon?: string; order: number } }
+  form: { route: string; component: string; meta: { title: string; order: number } }
 }>({
   visible: false,
   mode: 'add',
-  type: 'route',
+  type: 'group',
   parentRoute: '',
-  form: { route: '', component: '', meta: { title: '', icon: '', order: 0 } }
+  form: { route: '', component: '', meta: { title: '', order: 0 } }
 })
 
 /** 通用确认弹窗（替代 confirm） */
@@ -375,7 +374,6 @@ function addRoute() {
     component: '@/views/NewRoute.vue',
     meta: {
       title: '新路由',
-      icon: 'FileText',
       order: routes.value.length
     }
   }
@@ -389,13 +387,13 @@ function addRoute() {
 function openAddRoute() {
   editor.value.visible = true
   editor.value.mode = 'add'
-  editor.value.type = 'route'
+  editor.value.type = 'group'
   editor.value.parentRoute = ''
   editorHeaderTitle.value = '新增页面（路由）'
   editor.value.form = {
     route: '',
     component: '',
-    meta: { title: '', icon: '', order: routes.value.length }
+    meta: { title: '', order: routes.value.length }
   }
   // 组件选择与加载由子组件处理
   // 打开后立即持久化，避免刷新时丢失状态
@@ -408,15 +406,16 @@ function openEditRoute(index: number) {
   if (!r) return
   editor.value.visible = true
   editor.value.mode = 'edit'
-  editor.value.type = 'route'
+  // 独立页面有 component，分组路由没有
+  editor.value.type = (!r.children || r.children.length === 0) && r.component ? 'page' : 'group'
   editor.value.routeIndex = index
   editor.value.childIndex = undefined
   editor.value.parentRoute = ''
   editorHeaderTitle.value = '编辑页面路由'
   editor.value.form = {
     route: r.route,
-    component: r.component,
-    meta: { title: r.meta?.title || '', icon: r.meta?.icon || '', order: r.meta?.order || 0 }
+    component: r.component || '',
+    meta: { title: r.meta?.title || '', order: r.meta?.order || 0 }
   }
   // 组件选择与加载由子组件处理
   // 打开后立即持久化，避免刷新时丢失状态
@@ -479,14 +478,14 @@ function saveEditor() {
   const targetParentIndex = routes.value.findIndex((r) => r.route === (parentRoute || ''))
 
   if (mode === 'add') {
-    if (type === 'route') {
+    if (type === 'group' || type === 'page') {
       if (targetParentIndex >= 0) {
         // 用户将顶级路由移动为子路由
       } else {
         const newRoute: RouteConfig = {
           route: form.route || 'new-route',
-          ...(form.component ? { component: normalizeComponentPathInput(form.component) } : {}),
-          meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
+          ...(type === 'page' && form.component ? { component: normalizeComponentPathInput(form.component) } : {}),
+          meta: { title: form.meta.title || '新路由', order: form.meta.order ?? routes.value.length }
         }
         routes.value.push(newRoute)
       }
@@ -504,7 +503,7 @@ function saveEditor() {
         const newRouteFallback: RouteConfig = {
           route: form.route || 'new-route',
           ...(form.component ? { component: normalizeComponentPathInput(form.component) } : {}),
-          meta: { title: form.meta.title || '新路由', icon: form.meta.icon, order: form.meta.order ?? routes.value.length }
+          meta: { title: form.meta.title || '新路由', order: form.meta.order ?? routes.value.length }
         }
         routes.value.push(newRouteFallback)
       }
@@ -513,18 +512,17 @@ function saveEditor() {
     if (typeof routeIndex === 'number' && typeof childIndex !== 'number') {
       const target = routes.value[routeIndex]
       if (!target) return
-      if (type === 'route') {
-        // 编辑顶级路由：有子路由时不设置 component
+      if (type === 'group' || type === 'page') {
+        // 编辑顶级路由
         target.route = form.route
         const hasChildren = Array.isArray(target.children) && target.children.length > 0
-        if (hasChildren) {
-          // 有子路由的父路由不需要 component
+        if (type === 'group' || hasChildren) {
+          // 有子路由的父路由或分组路由不需要 component
           delete (target as any).component
-        } else if (form.component) {
+        } else if (type === 'page' && form.component) {
           target.component = normalizeComponentPathInput(form.component)
         }
         target.meta.title = form.meta.title
-        target.meta.icon = form.meta.icon
         target.meta.order = form.meta.order
       } else if (type === 'child' && targetParentIndex >= 0) {
         const movedChild: RouteChild = {
@@ -553,11 +551,11 @@ function saveEditor() {
           targetParent.children = Array.isArray(targetParent.children) ? targetParent.children : []
           targetParent.children.push(child)
         }
-      } else if (type === 'route') {
+      } else if (type === 'group' || type === 'page') {
         const newTop: RouteConfig = {
           route: form.route,
-          component: normalizeComponentPathInput(form.component),
-          meta: { title: form.meta.title, icon: form.meta.icon, order: form.meta.order }
+          ...(type === 'page' && form.component ? { component: normalizeComponentPathInput(form.component) } : {}),
+          meta: { title: form.meta.title, order: form.meta.order }
         }
         parent.children.splice(childIndex, 1)
         routes.value.push(newTop)
@@ -710,7 +708,7 @@ function restoreEditorState() {
       // 逐字段赋值以维持响应式引用
       editor.value.visible = !!restored.visible
       editor.value.mode = restored.mode || 'add'
-      editor.value.type = restored.type || 'route'
+      editor.value.type = restored.type || 'group'
       editor.value.routeIndex = restored.routeIndex
       editor.value.childIndex = restored.childIndex
       editor.value.parentRoute = restored.parentRoute || ''
@@ -719,7 +717,6 @@ function restoreEditorState() {
         component: restored.form?.component || '',
         meta: {
           title: restored.form?.meta?.title || '',
-          icon: restored.form?.meta?.icon || '',
           order: typeof restored.form?.meta?.order === 'number' ? restored.form.meta.order : 0
         }
       }

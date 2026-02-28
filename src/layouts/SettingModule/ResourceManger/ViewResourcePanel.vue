@@ -10,95 +10,63 @@
 <template>
   <div class="space-y-3 h-full">
     <div class="h-full overflow-y-auto">
-      <FileManagerPanel
-        ref="resPanel"
-        root="src/views"
-        :accept="'.vue'"
-        :allowed-extensions="['vue']"
-      >
+      <FileManagerPanel ref="resPanel" root="src/views" :accept="'.vue'" :allowed-extensions="['vue']">
         <template #header-actions>
-          <button @click="openAddViewModal" class="px-2 py-1 w-24 text-[12px] bg-emerald-600 text-white hover:bg-emerald-700 rounded">新增页面</button>
+          <button @click="openAddViewModal"
+            class="px-2 py-1 w-24 text-[12px] bg-emerald-600 text-white hover:bg-emerald-700 rounded">新增页面</button>
         </template>
         <template #item="{ item, deleteItem }">
           <div class="w-full">
             <div class="px-3 pt-2">
               <!-- 标题与路径一行，左右分布 -->
               <div class="flex items-center justify-between">
-                <div
-                  v-if="getRouteInfo(item.path)"
-                  class="text-[13px] text-gray-900 font-semibold truncate"
-                  :title="getRouteInfo(item.path)?.routeTitle"
-                >
+                <div v-if="getRouteInfo(item.path)" class="text-[13px] text-gray-900 font-semibold truncate"
+                  :title="getRouteInfo(item.path)?.routeTitle">
                   {{ getRouteInfo(item.path)?.routeTitle }}
                 </div>
-                <div
-                  v-else
+                <div v-else
                   class="inline-flex items-center px-2 py-0.5 text-[11px] font-medium text-red-700 bg-red-100 border border-red-200 rounded "
-                  title="未配置路由"
-                >
+                  title="未配置路由">
                   未配置路由
                 </div>
-                                <button
-                  @click="selectComponentPath(item.path)"
-                  class="  text-[12px] rounded  text-indigo-600 hover:text-indigo-900"
-                >复制路径/选择组件</button>
+                <button @click="selectComponentPath(item.path)"
+                  class="  text-[12px] rounded  text-indigo-600 hover:text-indigo-900">复制路径/选择组件</button>
 
               </div>
               <!-- 文件名称与复制路径按钮一行，名称在左，按钮在右 -->
               <div class="mt-1 flex items-center justify-between">
-                <div
-                  class="text-[11px] text-gray-400 truncate"
-                  :title="item.name"
-                >
+                <div class="text-[11px] text-gray-400 truncate" :title="item.name">
                   {{ item.name }}
                 </div>
-                <div
-                  class="text-[11px] text-gray-500 truncate ml-2"
-                  :title="getRouteInfo(item.path)?.routePath"
-                >
+                <div class="text-[11px] text-gray-500 truncate ml-2" :title="getRouteInfo(item.path)?.routePath">
                   {{ getRouteInfo(item.path)?.routePath }}
                 </div>
               </div>
             </div>
             <div class="px-3 pt-2">
-              <div
-                class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden"
-                style="aspect-ratio: 16 / 9;"
-              >
+              <div class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden"
+                style="aspect-ratio: 16 / 9;">
                 <ViewPreview :filePath="item.path" />
               </div>
             </div>
             <div class="flex gap-1 px-3 pb-3 pt-2">
-              <button
-                @click="openPreviewModal({ path: item.path })"
-                class="px-1 py-1 text-[12px] rounded bg-blue-600 text-white hover:bg-blue-700"
-              >预览</button>
-              <button
-                @click="openEditModal({ path: item.path })"
-                class="px-1 py-1 text-[12px] rounded bg-purple-600 text-white hover:bg-purple-700"
-              >编辑</button>
-              <button
-                @click="downloadView(item)"
-                class="px-1 py-1 text-[12px] rounded bg-indigo-600 text-white hover:bg-indigo-700"
-              >下载</button>
-              <button
-                @click="openRouteEditor(item.path)"
-                class="px-1 py-1 text-[12px] rounded bg-emerald-600 text-white hover:bg-emerald-700"
-              >配置路由</button>
-              <button @click="handleDeleteView(item)" class="px-1 py-1 text-[12px] bg-red-500 text-white hover:bg-red-600 rounded">删除</button>
+              <button @click="openPreviewModal({ path: item.path })"
+                class="px-1 py-1 text-[12px] rounded bg-blue-600 text-white hover:bg-blue-700">预览</button>
+              <button @click="openEditModal({ path: item.path })"
+                class="px-1 py-1 text-[12px] rounded bg-purple-600 text-white hover:bg-purple-700">编辑</button>
+              <button @click="downloadView(item)"
+                class="px-1 py-1 text-[12px] rounded bg-indigo-600 text-white hover:bg-indigo-700">下载</button>
+              <button @click="openRouteEditor(item.path)"
+                class="px-1 py-1 text-[12px] rounded bg-emerald-600 text-white hover:bg-emerald-700">配置路由</button>
+              <button @click="handleDeleteView(item)"
+                class="px-1 py-1 text-[12px] bg-red-500 text-white hover:bg-red-600 rounded">删除</button>
             </div>
           </div>
         </template>
       </FileManagerPanel>
 
-      <EditorModal 
-        v-model:visible="isEditModalVisible" 
-        title="编辑页面" 
-        :widthVw="95" 
-        :heightVh="95" 
-        :showFooter="false" 
-        :zIndex="1100"
-      >
+      <EditorModal v-model:visible="isEditModalVisible" title="编辑页面" :widthVw="95" :heightVh="95" :showFooter="false"
+        :zIndex="1100">
         <SplitEditorPreview :filePath="editPath" />
       </EditorModal>
 
@@ -106,10 +74,8 @@
         <div class="absolute inset-0 bg-black/30" @click="closePreviewModal"></div>
         <div class="absolute inset-0 p-4 flex items-center justify-center">
           <div class="relative w-full h-full max-w-[95vw] max-h-[95vh] bg-white rounded shadow">
-            <button
-              @click="closePreviewModal"
-              class="absolute top-3 right-3 px-2 h-7 text-[12px] bg-gray-100 text-gray-700 hover:bg-gray-200 rounded"
-            >关闭</button>
+            <button @click="closePreviewModal"
+              class="absolute top-3 right-3 px-2 h-7 text-[12px] bg-gray-100 text-gray-700 hover:bg-gray-200 rounded">关闭</button>
             <div class="w-full h-full flex items-center justify-center">
               <ViewPreview :filePath="previewPath" />
             </div>
@@ -117,35 +83,14 @@
         </div>
       </div>
 
-      <RouteEditorModal
-        :visible="routeEditorVisible"
-        :headerTitle="routeEditorHeader"
-        :mode="routeEditorMode"
-        v-model:type="routeEditorType"
-        v-model:form="routeEditorForm"
-        v-model:parent="routeEditorParentRoute"
-        :componentLocked="true"
-        @close="closeRouteEditor"
-        @save="saveRouteEditor"
-      />
+      <RouteEditorModal :visible="routeEditorVisible" :headerTitle="routeEditorHeader" :mode="routeEditorMode"
+        v-model:type="routeEditorType" v-model:form="routeEditorForm" v-model:parent="routeEditorParentRoute"
+        :componentLocked="true" @close="closeRouteEditor" @save="saveRouteEditor" />
 
-      <AddViewModal
-        :visible="addViewVisible"
-        :baseDir="getSelectedDir()"
-        @update:visible="v => addViewVisible = v"
-        @created="handleViewCreated"
-      />
-      <ConfirmModal
-        v-model:visible="confirm.visible"
-        :title="confirm.title"
-        :message="confirm.message"
-        :zIndex="1100"
-        :widthVw="40"
-        cancel-text="取消"
-        ok-text="确定"
-        @ok="confirmOk"
-        @cancel="confirmCancel"
-      />
+      <AddViewModal :visible="addViewVisible" :baseDir="getSelectedDir()" @update:visible="v => addViewVisible = v"
+        @created="handleViewCreated" />
+      <ConfirmModal v-model:visible="confirm.visible" :title="confirm.title" :message="confirm.message" :zIndex="1100"
+        :widthVw="40" cancel-text="取消" ok-text="确定" @ok="confirmOk" @cancel="confirmCancel" />
     </div>
   </div>
 </template>
@@ -162,7 +107,7 @@ import ViewPreview from '@/components/editor/ViewPreview.vue'
 import SplitEditorPreview from '@/components/editor/SplitEditorPreview.vue'
 import EditorModal from '@/components/editor/EditorModal.vue'
 
-interface Emits { (e: 'close'): void; (e: 'select', component: string): void }
+interface Emits { (e: 'close'): void;(e: 'select', component: string): void }
 const emit = defineEmits<Emits>()
 
 const previewModalVisible = ref<boolean>(false)
@@ -174,8 +119,8 @@ const routeInfoMap = ref<Record<string, { routePath: string; routeTitle: string 
 const routeEditorVisible = ref<boolean>(false)
 const routeEditorHeader = ref<string>('配置路由')
 const routeEditorMode = ref<'add' | 'edit'>('add')
-const routeEditorType = ref<'route' | 'child'>('route')
-const routeEditorForm = ref<{ route: string; component: string; meta: { title: string; icon?: string; order: number } }>({ route: '', component: '', meta: { title: '', icon: '', order: 0 } })
+const routeEditorType = ref<'page' | 'child'>('page')
+const routeEditorForm = ref<{ route: string; component: string; meta: { title: string; order: number } }>({ route: '', component: '', meta: { title: '', order: 0 } })
 const routeEditorParentRoute = ref<string>('')
 const addViewVisible = ref<boolean>(false)
 const resPanel = ref<any>(null)
@@ -209,7 +154,7 @@ function persistPanelState(): void {
       }
     }
     sessionStorage.setItem(HMR_RESTORE_KEY, JSON.stringify(payload))
-  } catch {}
+  } catch { }
 }
 function restorePanelStateIfNeeded(): void {
   try {
@@ -224,20 +169,19 @@ function restorePanelStateIfNeeded(): void {
     if (data?.routeEditor?.visible) {
       routeEditorHeader.value = String(data.routeEditor.header || routeEditorHeader.value)
       routeEditorMode.value = data.routeEditor.mode === 'edit' ? 'edit' : 'add'
-      routeEditorType.value = data.routeEditor.type === 'child' ? 'child' : 'route'
+      routeEditorType.value = data.routeEditor.type === 'child' ? 'child' : 'page'
       routeEditorForm.value = {
         route: String(data.routeEditor?.form?.route || ''),
         component: String(data.routeEditor?.form?.component || ''),
         meta: {
           title: String(data.routeEditor?.form?.meta?.title || ''),
-          icon: String(data.routeEditor?.form?.meta?.icon || ''),
           order: Number(data.routeEditor?.form?.meta?.order ?? 0)
         }
       }
       routeEditorParentRoute.value = String(data.routeEditor?.parent || '')
       routeEditorVisible.value = true
     }
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -264,16 +208,16 @@ function getRouteInfo(filePath: string): { routePath: string; routeTitle: string
 async function openRouteEditor(filePath: string): Promise<void> {
   const alias = toAliasPathForFile(filePath)
   const found = await findEntryByComponent(alias)
-  if (found && found.type === 'route') {
+  if (found && found.type === 'page') {
     const r: any = found.entry
     routeEditorMode.value = 'edit'
-    routeEditorType.value = 'route'
+    routeEditorType.value = 'page'
     routeEditorHeader.value = '编辑路由'
     routeEditorParentRoute.value = ''
     routeEditorForm.value = {
       route: String(r.route || ''),
       component: String(r.component || alias),
-      meta: { title: String(r?.meta?.title || ''), icon: r?.meta?.icon || '', order: Number(r?.meta?.order ?? 0) }
+      meta: { title: String(r?.meta?.title || ''), order: Number(r?.meta?.order ?? 0) }
     }
   } else if (found && found.type === 'child') {
     const c: any = found.entry
@@ -288,10 +232,10 @@ async function openRouteEditor(filePath: string): Promise<void> {
     }
   } else {
     routeEditorMode.value = 'add'
-    routeEditorType.value = 'route'
+    routeEditorType.value = 'page'
     routeEditorHeader.value = '新增路由'
     routeEditorParentRoute.value = ''
-    routeEditorForm.value = { route: '', component: toAliasPathForFile(filePath), meta: { title: '', icon: '', order: 0 } }
+    routeEditorForm.value = { route: '', component: toAliasPathForFile(filePath), meta: { title: '', order: 0 } }
   }
   routeEditorVisible.value = true
 }
@@ -322,11 +266,11 @@ async function saveRouteEditor(): Promise<void> {
       parentRoute: routeEditorParentRoute.value,
       route: form.route,
       component: form.component,
-      meta: { title: form.meta.title, icon: form.meta.icon, order: form.meta.order }
+      meta: { title: form.meta.title, order: form.meta.order }
     })
     routeInfoMap.value = await buildViewRouteInfoMap()
     routeEditorVisible.value = false
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -375,32 +319,32 @@ function closeEditModal(): void {
  * - 将 'src/views/xxx.vue' 转换为 '@/views/xxx.vue'
  * - 复制到剪贴板并向父组件回传
  */
-  function selectComponentPath(filePath: string): void {
-    const alias = toAliasPathForFile(filePath)
-    try { (navigator as any)?.clipboard?.writeText?.(alias).catch(() => {}) } catch {}
-    emit('select', alias)
-  }
+function selectComponentPath(filePath: string): void {
+  const alias = toAliasPathForFile(filePath)
+  try { (navigator as any)?.clipboard?.writeText?.(alias).catch(() => { }) } catch { }
+  emit('select', alias)
+}
 
-  /**
-   * 下载视图文件到本地
-   * @param item 当前资源项（包含名称与实际文件路径）
-   */
-  async function downloadView(item: { name: string; path: string }): Promise<void> {
-    try {
-      const filePath = item.path
-      const content = await fileManagerService.readFile(filePath)
-      const blob = new Blob([content ?? ''], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      const nameFromPath = filePath.replace(/\\/g, '/').split('/').pop() || 'view.vue'
-      a.href = url
-      a.download = item.name || nameFromPath
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch {}
-  }
+/**
+ * 下载视图文件到本地
+ * @param item 当前资源项（包含名称与实际文件路径）
+ */
+async function downloadView(item: { name: string; path: string }): Promise<void> {
+  try {
+    const filePath = item.path
+    const content = await fileManagerService.readFile(filePath)
+    const blob = new Blob([content ?? ''], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const nameFromPath = filePath.replace(/\\/g, '/').split('/').pop() || 'view.vue'
+    a.href = url
+    a.download = item.name || nameFromPath
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch { }
+}
 
 function openAddViewModal(): void { addViewVisible.value = true }
 
@@ -408,13 +352,13 @@ async function handleViewCreated(_p: { filePath: string }): Promise<void> {
   try {
     routeInfoMap.value = await buildViewRouteInfoMap()
     if (resPanel.value?.refreshTree) await resPanel.value.refreshTree()
-  } catch {}
+  } catch { }
 }
 
 function getSelectedDir(): string {
   try {
     if (resPanel.value?.getSelectedDir) return String(resPanel.value.getSelectedDir())
-  } catch {}
+  } catch { }
   return 'src/views'
 }
 
@@ -425,7 +369,7 @@ onMounted(async () => {
   routeInfoMap.value = await buildViewRouteInfoMap()
 })
 
-onUnmounted(() => {})
+onUnmounted(() => { })
 
 /**
  * 监听 HMR 与页面刷新，保存并在重载后恢复面板状态
@@ -435,14 +379,14 @@ onMounted(() => {
   const beforeUnload = () => persistPanelState()
   window.addEventListener('beforeunload', beforeUnload)
   if ((import.meta as any).hot) {
-    ;(import.meta as any).hot.on?.('vite:beforeUpdate', persistPanelState)
-    ;(import.meta as any).hot.on?.('vite:full-reload', persistPanelState)
+    ; (import.meta as any).hot.on?.('vite:beforeUpdate', persistPanelState)
+      ; (import.meta as any).hot.on?.('vite:full-reload', persistPanelState)
   }
   onUnmounted(() => {
     window.removeEventListener('beforeunload', beforeUnload)
-    if ( (import.meta as any).hot) {
-      ;(import.meta as any).hot.off?.('vite:beforeUpdate', persistPanelState)
-      ;(import.meta as any).hot.off?.('vite:full-reload', persistPanelState)
+    if ((import.meta as any).hot) {
+      ; (import.meta as any).hot.off?.('vite:beforeUpdate', persistPanelState)
+        ; (import.meta as any).hot.off?.('vite:full-reload', persistPanelState)
     }
   })
 })
@@ -458,7 +402,7 @@ async function handleDeleteView(item: { name: string; path: string }): Promise<v
   const alias = toAliasPathForFile(filePath)
   const found = await findEntryByComponent(alias)
 
-  if (found && found.type === 'route') {
+  if (found && found.type === 'page') {
     const top = found.entry
     const children = Array.isArray(top.children) ? top.children : []
     const childCount = children.length
@@ -469,14 +413,14 @@ async function handleDeleteView(item: { name: string; path: string }): Promise<v
       title: '删除路由与视图',
       message: confirmMsg,
       onOk: async () => {
-        try { await deleteTopRoute(String(top.route || '')) } catch {}
+        try { await deleteTopRoute(String(top.route || '')) } catch { }
         const files: string[] = [svcNormalize(String(top.component || alias)), ...children.map(c => svcNormalize(String(c.component || '')))]
         await Promise.allSettled(files.map(fp => safeDeleteFile(fp)))
         try {
           routeInfoMap.value = await buildViewRouteInfoMap()
           if (resPanel.value?.refreshTree) await resPanel.value.refreshTree()
           else if (resPanel.value?.loadItems) await resPanel.value.loadItems()
-        } catch {}
+        } catch { }
       }
     })
   } else if (found && found.type === 'child') {
@@ -485,14 +429,14 @@ async function handleDeleteView(item: { name: string; path: string }): Promise<v
       title: '删除子路由与视图',
       message: '确定删除该子路由及其页面视图文件吗？',
       onOk: async () => {
-        try { await deleteChildRoute(String(found.parentRoute || ''), String(child.route || '')) } catch {}
+        try { await deleteChildRoute(String(found.parentRoute || ''), String(child.route || '')) } catch { }
         const childFile = svcNormalize(String(child.component || alias))
         await safeDeleteFile(childFile)
         try {
           routeInfoMap.value = await buildViewRouteInfoMap()
           if (resPanel.value?.refreshTree) await resPanel.value.refreshTree()
           else if (resPanel.value?.loadItems) await resPanel.value.loadItems()
-        } catch {}
+        } catch { }
       }
     })
   } else {
@@ -505,7 +449,7 @@ async function handleDeleteView(item: { name: string; path: string }): Promise<v
           routeInfoMap.value = await buildViewRouteInfoMap()
           if (resPanel.value?.refreshTree) await resPanel.value.refreshTree()
           else if (resPanel.value?.loadItems) await resPanel.value.loadItems()
-        } catch {}
+        } catch { }
       }
     })
   }
@@ -515,7 +459,7 @@ async function handleDeleteView(item: { name: string; path: string }): Promise<v
  * 安全删除文件（忽略不存在或删除失败的异常）
  */
 async function safeDeleteFile(fp: string): Promise<void> {
-  try { await fileManagerService.deleteFile(fp) } catch {}
+  try { await fileManagerService.deleteFile(fp) } catch { }
 }
 
 /** 打开确认弹窗 */

@@ -348,7 +348,7 @@ export class PDFExportService {
       // 直接使用route-generator.ts的函数，避免Vue composable的上下文问题
       const { getRouteInfosSortedByPageNumber } = await import('@/core/utils/route-generator')
       const routes = getRouteInfosSortedByPageNumber()
-      
+
       return routes.map((route, index) => ({
         route: route.path,
         title: route.name || `页面 ${index + 1}`,
@@ -373,7 +373,7 @@ export class PDFExportService {
     if (!this.router) {
       throw new Error('路由实例未设置')
     }
-    
+
     await this.router.push(route)
   }
 
@@ -384,7 +384,7 @@ export class PDFExportService {
   private async waitForPageReady(timeout: number = 2000): Promise<void> {
     // 等待Vue的下一个tick
     await nextTick()
-    
+
     // 等待页面加载完成
     await new Promise<void>((resolve) => {
       // 检查document.readyState
@@ -392,28 +392,28 @@ export class PDFExportService {
         resolve()
         return
       }
-      
+
       const handleLoad = () => {
         document.removeEventListener('readystatechange', handleReadyStateChange)
         window.removeEventListener('load', handleLoad)
         resolve()
       }
-      
+
       const handleReadyStateChange = () => {
         if (document.readyState === 'complete') {
           handleLoad()
         }
       }
-      
+
       document.addEventListener('readystatechange', handleReadyStateChange)
       window.addEventListener('load', handleLoad)
-      
+
       // 超时保护
       setTimeout(() => {
         handleLoad()
       }, timeout)
     })
-    
+
     // 额外等待确保页面渲染完成
     await new Promise(resolve => setTimeout(resolve, 500))
   }
@@ -426,20 +426,20 @@ export class PDFExportService {
     // 获取当前页面的实际尺寸作为参考
     const { getPageDimensions } = await import('../utils/dom')
     const actualDimensions = getPageDimensions()
-    
+
     // 计算合适的PDF尺寸
     const aspectRatio = actualDimensions.width / actualDimensions.height
-    
+
     // 使用A4横向作为基准，但根据实际内容调整
     let pageWidth = 297 // A4横向宽度(mm)
     let pageHeight = 210 // A4横向高度(mm)
-    
+
     // 如果内容比例与A4差异较大，使用自定义尺寸
     if (aspectRatio > 1.6 || aspectRatio < 1.2) {
       // 保持宽度，调整高度以匹配内容比例
       pageHeight = pageWidth / aspectRatio
     }
-    
+
     return new jsPDF({
       orientation: pageWidth > pageHeight ? 'landscape' : 'portrait',
       unit: 'mm',
@@ -460,7 +460,7 @@ export class PDFExportService {
     // 获取PDF页面尺寸
     const pageWidth = pdf.internal.pageSize.getWidth()
     const pageHeight = pdf.internal.pageSize.getHeight()
-    
+
     // 项目需要，不需要边距，改为全幅铺满（cover），通过裁剪消除空白边距
     const availableWidth = pageWidth
     const availableHeight = pageHeight

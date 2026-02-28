@@ -9,7 +9,6 @@ export interface BaseRouteConfig {
   title: string
   component?: () => Promise<any> // Vue 3 异步组件
   children?: BaseRouteConfig[]
-  icon?: string
   pageNumber?: number
   hidden?: boolean
   order?: number
@@ -19,7 +18,6 @@ export interface BaseRouteConfig {
 // 基础路由元信息接口
 export interface BaseRouteMeta {
   title?: string
-  icon?: string
   requiresAuth?: boolean
   hidden?: boolean
   parent?: string

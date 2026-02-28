@@ -6,22 +6,23 @@
 
 ### 路由层级说明
 
-本项目的路由系统采用**两级路由架构**：
+本项目的路由系统采用**两级路由架构**，支持三种类型的路由定义：
 
-- **有子路由的父路由**：仅作为菜单分组，不指向具体页面，不配置 `component`
-- **无子路由的路由**：作为独立页面，必须配置 `component`
-- **子路由**：作为独立的完整页面，必须配置 `component`
+- **分组路由** (group)：作为章节分组（在目录中显示为章节标题，点击时自动跳转到该章节的第一个可见子页面），不允许配置 `component`
+- **独立页面** (page)：作为没有子页面的独立内容页，必须配置 `component`，且不允许有子路由 (`children`)
+- **子页面** (child)：作为分组路由下的独立内容页，必须配置 `component`，其父节点只能是“分组路由”
 
 ```
-分组路由: /feature-showcase (仅分组，自动重定向到第一个子路由)
-├── 子路由: /feature-showcase/index (独立页面组件)
-├── 子路由: /feature-showcase/theme-showcase (独立页面组件)
-└── 子路由: /feature-showcase/mermaid-showcase (独立页面组件)
+```
+分组路由: /feature-showcase (无法配置组件，自动重定向到第一个子页面)
+├── 子页面: /feature-showcase/index (独立页面组件)
+├── 子页面: /feature-showcase/theme-showcase (独立页面组件)
+└── 子页面: /feature-showcase/mermaid-showcase (独立页面组件)
 
-独立路由: /home (独立页面组件，无子路由)
+独立页面: /home (独立页面组件，不允许有子页面)
 ```
 
-> **注意**：访问有子路由的父路由 URL 时，会自动重定向到 `order` 最小的子路由页面。
+> **注意**：访问分组路由 URL 时，会自动重定向到 `order` 最小的子页面。
 
 ### 添加新模块和页面
 
@@ -32,7 +33,7 @@
    # 创建模块目录
    mkdir src/views/my-module
    
-   # 创建页面组件（注意：父路由不需要组件）
+   # 创建页面组件（注意：分组路由不需要组件）
    src/views/my-module/MyListPage.vue      # 子页面：列表页
    src/views/my-module/MyPreviewPage.vue   # 子页面：预览页
    ```
@@ -43,23 +44,22 @@
    routes:
      - route: "my-module"                    # 父路由路径（仅分组）
        meta:
-         title: "我的模块"                     # 父路由标题
-         icon: "Settings"                     # 父路由图标
-         order: 10                            # 父路由排序
-       children:                              # 子路由配置
-         - route: "list"                     # 子路由路径
+         title: "我的模块"                     # 路由标题
+         order: 10                            # 分组路由排序
+       children:                              # 子页面配置
+         - route: "list"                     # 子页面路径
            component: "@/views/my-module/MyListPage.vue"
            meta:
              title: "列表"
              order: 10
-         - route: "preview"                  # 子路由路径
+         - route: "preview"                  # 子页面路径
            component: "@/views/my-module/MyPreviewPage.vue"
            meta:
              title: "预览"
              order: 20
    ```
 
-#### 方式二：创建独立页面（无子路由）
+#### 方式二：创建独立页面（无子页面）
 
 ```yaml
 routes:
@@ -67,7 +67,6 @@ routes:
     component: "@/views/SimplePage.vue"      # 独立页面必须配置组件
     meta:
       title: "简单页面"
-      icon: "FileText"
       order: 5
 ```
 
@@ -107,7 +106,6 @@ routes:
 ### 修改现有路由
 
 - **修改标题**: 更改 `meta.title` 值
-- **修改图标**: 更改 `meta.icon` 值
 - **调整顺序**: 更改 `meta.order` 值
 - **隐藏路由**: 添加 `meta.hidden: true`
 
@@ -121,10 +119,10 @@ routes:
 
 #### `component` (条件必需)
 - **类型**: `string`
-- **说明**: 父路由对应的Vue组件文件路径
+- **说明**: 对应的Vue组件文件路径
 - **规则**: 
-  - **有子路由时**：不配置此字段（父路由仅作分组）
-  - **无子路由时**：必须配置此字段
+  - **分组路由**：不配置此字段
+  - **独立页面**：必须配置此字段
 
 #### `meta` (必需)
 路由元信息对象，包含以下属性：
@@ -132,10 +130,6 @@ routes:
 ##### `title` (必需)
 - **类型**: `string`
 - **说明**: 模块标题，用于导航菜单显示
-
-##### `icon` (可选)
-- **类型**: `string`
-- **说明**: 图标名称，用于导航菜单显示
 
 ##### `order` (必需)
 - **类型**: `number`
@@ -173,14 +167,18 @@ routes:
 ## 路由生成规则
 
 ### 路径构建
-1. **无子路由的路由**：直接使用 `route` 值作为路径
-2. **有子路由的父路由**：自动重定向到第一个可见子路由
-3. **子路由路径**: 父路径 + "/" + 子路由 `route` 值
+1. **独立页面**：直接使用 `route` 值作为路径
+2. **分组路由**：自动重定向到第一个可见子页面
+3. **子页面路径**: 父路径 + "/" + 子页面 `route` 值
 
 ### 页码分配规则
-- **无子路由的路由**：按 `order` 顺序分配页码
-- **有子路由的父路由**：不分配页码（仅作分组）
-- **子路由**：按 `order` 顺序继续分配页码
+- **独立页面**：按 `order` 顺序分配页码
+- **分组路由**：不分配页码（仅作分组，目录取其第一个子页面的页码）
+- **子页面**：按 `order` 顺序继续为每一个可见子页面分配独立的页码
+
+### 目录生成规则（Table of Contents）
+1. **章节提取**：仅提取顶层（level 0）的路由作为目录中的大纲/章节。
+2. **跳转能力**：如果某个大纲下包含子路由，则目录在展示该大纲标题时，自动将路径和跳转页码指向其**第一个可见的子页面**。如果不包含子路由，则直接使用自身的信息。
 
 ### 导航菜单生成
 1. **显示规则**: `hidden: true` 的路由不显示
@@ -199,14 +197,12 @@ routes:
     component: "@/views/HomePage.vue"
     meta:
       title: "首页"
-      icon: "Home"
       order: 0
 
-  # 分组路由（有子路由，不配置 component）
+  # 分组路由（不允许配置 component）
   - route: "container-demo"
     meta:
       title: "容器组件演示"
-      icon: "Layout"
       order: 2
     children:
       - route: "default-page"
@@ -226,20 +222,19 @@ routes:
     component: "@/views/EndPage.vue"
     meta:
       title: "末页"
-      icon: "Send"
       order: 10
 ```
 
 ## 常见问题
 
-### Q: 父路由需要配置组件吗？
-A: 取决于是否有子路由。有子路由时不配置（仅作分组），没有子路由时必须配置。
+### Q: 分组路由可以配置组件吗？
+A: 不能。在目前的设计下，独立页面不可以包含子页面，分组路由必须包含子页面且不能配置 component。
 
-### Q: 访问有子路由的父路由 URL 会怎样？
-A: 会自动重定向到该分组下 `order` 最小的可见子路由页面。
+### Q: 访问分组路由 URL 会怎样？
+A: 会自动重定向到该分组下 `order` 最小的可见子页面。
 
-### Q: 页码是如何分配的？
-A: 仅为实际页面（无子路由的路由和所有子路由）分配页码，分组路由不占用页码。
+### Q: 页码是如何分配的？目录又是怎么显示的？
+A: 仅为实际页面（无子路由的父级路由，和所有的子路由）分配顺序页码。在生成目录（TableOfContents）时，仅读取大类别（父级路由）展示结构。如果父级路由包含子路由，它在目录上的点击目标会被映射为其第一个子页面的路径与页码。
 
 ### Q: 路由配置修改后需要重启服务吗？
 A: 不需要，配置文件位于 `public` 目录下，修改后刷新页面即可生效。

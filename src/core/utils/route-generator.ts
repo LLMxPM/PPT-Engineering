@@ -65,7 +65,6 @@ export interface RouteInfo {
   level: number         // 层级(0为父路由，1为子路由)
   order: number         // 排序值
   pageNumber?: number   // 页码，表示在所有显示页面中的顺序
-  icon?: string         // 图标
   parentPath?: string   // 父路由路径
   hidden?: boolean      // 是否隐藏
   component?: string    // 组件路径
@@ -215,7 +214,6 @@ function convertToNavigationItem(config: RouteConfig | BaseRouteConfig, parentPa
     id: configName,
     title: configTitle,
     path: fullPath,
-    icon: config.meta?.icon,
     order: config.meta?.order || 0,
     hidden: config.meta?.hidden || false,
     disabled: config.meta?.disabled || false,
@@ -296,7 +294,6 @@ function convertToMenuItem(config: RouteConfig | BaseRouteConfig, parentPath: st
     id: configName,
     title: configTitle,
     path: fullPath,
-    icon: config.meta?.icon,
     order: config.meta?.order || 0,
     hidden: config.meta?.hidden || config.meta?.hiddenInMenu || false,
     disabled: config.meta?.disabled || false,
@@ -423,7 +420,6 @@ export function getAllRouteInfos(): RouteInfo[] {
         level: 0,
         order: parentConfig.order || parentConfig.meta?.order || 0,
         pageNumber: parentConfig.pageNumber || parentConfig.meta?.pageNumber,
-        icon: parentConfig.meta?.icon,
         hidden: parentConfig.meta?.hidden || false,
         component: parentConfig.component ? 'parent-component' : undefined
       })

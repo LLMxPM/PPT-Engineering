@@ -10,36 +10,49 @@
   <EditorModal :visible="visible" :title="headerTitle" :widthVw="50" :zIndex="102"
     @update:visible="v => { if (!v) onClose() }" @cancel="onClose" @ok="onSave">
     <div class="p-0">
-      <div class="space-y-3">
-        <!-- 标题与路由路径 -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[14px] font-medium text-gray-700 mb-1">显示标题</label>
-            <input v-model="localForm.meta.title" type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <!-- 左侧：表单配置区 -->
+        <div class="md:col-span-3 space-y-4">
+          <!-- 标题与路由路径 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[14px] font-medium text-gray-700 mb-1">显示标题</label>
+              <input v-model="localForm.meta.title" type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
+            </div>
+            <div>
+              <label class="block text-[14px] font-medium text-gray-700 mb-1">路由路径</label>
+              <input v-model="localForm.route" type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
+            </div>
           </div>
-          <div>
-            <label class="block text-[14px] font-medium text-gray-700 mb-1">路由路径</label>
-            <input v-model="localForm.route" type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
+          <!-- 路由层级选择和排序 -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[14px] font-medium text-gray-700 mb-1">路由层级</label>
+              <div class="flex items-center h-[38px] gap-6">
+                <label class="inline-flex items-center gap-2 text-[14px] text-gray-700 cursor-pointer">
+                  <input type="radio" class="h-4 w-4" value="group" v-model="localType" />
+                  <span>分组路由</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-[14px] text-gray-700 cursor-pointer">
+                  <input type="radio" class="h-4 w-4" value="page" v-model="localType" />
+                  <span>独立页面</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-[14px] text-gray-700 cursor-pointer">
+                  <input type="radio" class="h-4 w-4" value="child" v-model="localType" />
+                  <span>子页面</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[14px] font-medium text-gray-700 mb-1">排序</label>
+              <input v-model.number="localForm.meta.order" type="number"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
+            </div>
           </div>
-        </div>
-        <!-- 路由层级选择 -->
-        <div>
-          <label class="block text-[14px] font-medium text-gray-700 mb-1">路由层级</label>
-          <div class="flex items-center gap-6">
-            <label class="inline-flex items-center gap-2 text-[14px] text-gray-700">
-              <input type="radio" class="h-4 w-4" value="route" v-model="localType" /> 顶级路由
-            </label>
-            <label class="inline-flex items-center gap-2 text-[14px] text-gray-700">
-              <input type="radio" class="h-4 w-4" value="child" v-model="localType" /> 子路由
-            </label>
-          </div>
-        </div>
-
-        <!-- 父路由选择（当为子路由时显示） -->
-        <div v-if="localType === 'child'" class="grid grid-cols-2 gap-3">
-          <div>
+          <!-- 父路由选择 -->
+          <div v-if="localType === 'child'">
             <label class="block text-[14px] font-medium text-gray-700 mb-1">父路由</label>
             <select v-model="localParentRoute"
               class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500">
@@ -47,39 +60,19 @@
                 {{ opt.label }}（{{ opt.value }}）
               </option>
             </select>
-            <p v-if="noParentOptions" class="mt-1 text-[12px] text-gray-500">暂无顶级路由可作为父路由，请先创建顶级路由。</p>
+            <p v-if="noParentOptions" class="mt-1 text-[12px] text-gray-500">暂无分组路由可作为父路由，请先创建分组路由。</p>
           </div>
-          <div>
-            <label class="block text-[14px] font-medium text-gray-700 mb-1">排序</label>
-            <input v-model.number="localForm.meta.order" type="number"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-          </div>
-        </div>
-        <!-- 图标（仅顶级路由显示） -->
-        <div v-if="localType === 'route'" class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[14px] font-medium text-gray-700 mb-1">图标</label>
-            <div class="relative flex items-center gap-2">
-              <Icon :name="localForm.meta.icon" :size="24" :stroke-width="2" class="text-gray-700" />
-              <input v-model="localForm.meta.icon" type="text" placeholder="选择或输入图标名称"
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-              <button @click="openIconPicker"
-                class="px-3 py-2 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">选择图标</button>
-            </div>
-          </div>
-          <div>
-            <label class="block text-[14px] font-medium text-gray-700 mb-1">排序</label>
-            <input v-model.number="localForm.meta.order" type="number"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
+
+
           <!-- 组件路径（开发模式支持联想与弹窗选择组件） -->
           <div>
             <label class="block text-[14px] font-medium text-gray-700 mb-1">组件路径</label>
-            <!-- 顶级路由且有子路由时提示不需要组件 -->
-            <p v-if="localType === 'route'" class="text-[12px] text-amber-600 mb-1">提示：如果该路由有子路由，则不需要配置组件（作为分组路由）</p>
-            <div v-if="props.componentLocked">
+            <p v-if="localType === 'group'" class="text-[12px] text-amber-600 mb-1">提示：分组路由不指向具体页面组件</p>
+            <div v-if="localType === 'group'">
+              <input type="text" disabled placeholder="无需配置组件"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] bg-gray-100 text-gray-500" />
+            </div>
+            <div v-else-if="props.componentLocked">
               <input v-model="localForm.component" type="text" disabled
                 class="w-full px-3 py-2 border border-gray-300 rounded-md text-[14px] bg-gray-100 text-gray-500" />
             </div>
@@ -91,7 +84,7 @@
                   @blur="onComponentInputBlur"
                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
                 <button @click="openComponentPicker"
-                  class="px-3 py-2 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                  class="px-3 py-2 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors flex-shrink-0">
                   选择组件
                 </button>
                 <!-- 下拉建议列表 -->
@@ -112,8 +105,6 @@
                 </div>
               </div>
               <p v-if="componentError" class="mt-1 text-[12px] text-red-500">{{ componentError }}</p>
-
-
             </div>
             <div v-else>
               <input v-model="localForm.component" type="text" placeholder="例如：@/views/Feature.vue"
@@ -121,17 +112,20 @@
               <p class="text-[14px] text-gray-500 mt-1">开发服务不可用，使用手动输入（支持 '@/views/...', 或 'src/views/...' 将自动转换）。</p>
             </div>
           </div>
-          <!-- 页面组件预览 -->
-          <div>
-            <div class="border rounded bg-gray-50 flex items-center justify-center w-full overflow-hidden"
-              style="aspect-ratio: 16 / 9;">
-              <ViewPreview v-if="localForm.component" :filePath="localForm.component" />
-              <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-500">
-                请选择或输入有效的视图组件路径</div>
+        </div>
+
+        <!-- 右侧：页面组件预览 -->
+        <div class="md:col-span-2 flex flex-col">
+          <label class="block text-[14px] font-medium text-gray-700 mb-1">页面组件预览</label>
+          <div class="border rounded bg-gray-50 flex items-center justify-center w-full grow overflow-hidden"
+            style="aspect-ratio: 16 / 9; max-height: 100%;">
+            <ViewPreview v-if="localForm.component" :filePath="localForm.component" />
+            <div v-else
+              class="w-full h-full flex items-center justify-center text-center p-4 text-[12px] text-gray-500">
+              请选择或输入有效的视图组件路径
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </EditorModal>
@@ -142,13 +136,7 @@
       <ViewResourcePanel @select="handleComponentSelected" @close="() => { componentPickerVisible = false }" />
     </div>
   </EditorModal>
-  <EditorModal :visible="iconPickerVisible" :title="'选择图标'" :widthVw="70" :heightVh="80" :zIndex="104"
-    :showFooter="false" @update:visible="v => { if (!v) iconPickerVisible = false }"
-    @cancel="() => { iconPickerVisible = false }">
-    <div class="h-[calc(80vh-100px)]">
-      <IconPicker v-model="localForm.meta.icon" @select="handleIconSelected" />
-    </div>
-  </EditorModal>
+
 </template>
 
 <script setup lang="ts">
@@ -157,21 +145,19 @@ import { fileManagerService } from '@/core/services/FileManagerService'
 import EditorModal from '@/components/editor/EditorModal.vue'
 import { listParentRouteOptions } from '@/core/services/RouteConfigService'
 import ViewResourcePanel from '@/layouts/SettingModule/ResourceManger/ViewResourcePanel.vue'
-import IconPicker from '@/components/editor/IconPicker.vue'
-import Icon from '@/components/layout/contentcommon/Icon.vue'
 import ViewPreview from '@/components/editor/ViewPreview.vue'
 
 /**
  * Props 与 Emits 定义
  */
-interface RouteMeta { title: string; icon?: string; order: number }
-interface RouteForm { route: string; component: string; meta: RouteMeta }
+interface RouteMeta { title: string; order: number }
+interface RouteForm { route: string; component?: string; meta: RouteMeta }
 
 const props = defineProps<{
   visible: boolean
   headerTitle: string
   mode: 'add' | 'edit'
-  type: 'route' | 'child'
+  type: 'group' | 'page' | 'child'
   form: RouteForm
   componentLocked?: boolean
   parent?: string
@@ -181,16 +167,16 @@ const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save'): void
   (e: 'update:form', form: RouteForm): void
-  (e: 'update:type', t: 'route' | 'child'): void
+  (e: 'update:type', t: 'group' | 'page' | 'child'): void
   (e: 'update:parent', parent: string): void
 }>()
 
 /**
  * 本地表单副本：用于内部编辑，提交时同步到父组件
  */
-const localForm = ref<RouteForm>({ route: '', component: '', meta: { title: '', icon: '', order: 0 } })
+const localForm = ref<RouteForm>({ route: '', component: '', meta: { title: '', order: 0 } })
 /** 路由层级本地状态 */
-const localType = ref<'route' | 'child'>('route')
+const localType = ref<'group' | 'page' | 'child'>('group')
 /** 父路由选择本地状态（值为顶级路由的 route 字段） */
 const localParentRoute = ref<string>('')
 
@@ -272,8 +258,7 @@ const activeSuggestionIndex = ref(0)
 const componentSearchText = ref('')
 // 组件选择弹窗状态
 const componentPickerVisible = ref(false)
-/** 图标选择弹窗状态 */
-const iconPickerVisible = ref(false)
+
 
 /** 顶级路由选项（作为子路由的父级选择） */
 const parentOptions = ref<{ label: string; value: string }[]>([])
@@ -396,20 +381,7 @@ function handleComponentSelected(aliasPath: string): void {
   componentPickerVisible.value = false
 }
 
-/**
- * 打开图标选择弹窗
- */
-function openIconPicker(): void {
-  iconPickerVisible.value = true
-}
 
-/**
- * 处理从图标选择器选中的图标并回填
- */
-function handleIconSelected(payload: { name: string; type: 'lucide' | 'static'; src?: string }): void {
-  localForm.value.meta.icon = payload.name
-  iconPickerVisible.value = false
-}
 
 /**
  * 加载 views 组件选项

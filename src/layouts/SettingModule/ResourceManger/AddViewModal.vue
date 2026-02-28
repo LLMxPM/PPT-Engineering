@@ -10,29 +10,21 @@
 -->
 
 <template>
-  <EditorModal
-    v-model:visible="visibleProxy"
-    title="新增页面"
-    :widthVw="60"
-    :heightVh="75"
-    :zIndex="600"
-    ok-text="创建"
-    cancel-text="取消"
-    @ok="saveNewView"
-    @cancel="handleCancel"
-  >
+  <EditorModal v-model:visible="visibleProxy" title="新增页面" :widthVw="60" :heightVh="75" :zIndex="600" ok-text="创建"
+    cancel-text="取消" @ok="saveNewView" @cancel="handleCancel">
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-[12px] font-medium text-gray-700 mb-1">文件名（不含扩展名）</label>
           <input v-model="form.fileName" type="text" placeholder="例如：MyPage"
-                 class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           <div class="mt-1 text-[11px] text-gray-500">实际保存为：{{ fullViewPath }}</div>
           <div v-if="errors.fileName" class="mt-1 text-[11px] text-red-600">{{ errors.fileName }}</div>
         </div>
         <div>
           <label class="block text-[12px] font-medium text-gray-700 mb-1">容器类型</label>
-          <select v-model="form.containerName" @change="onContainerChange" class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <select v-model="form.containerName" @change="onContainerChange"
+            class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option v-for="opt in containerOptions" :key="opt.name" :value="opt.name">{{ opt.name }}</option>
           </select>
           <div v-if="errors.containerName" class="mt-1 text-[11px] text-red-600">{{ errors.containerName }}</div>
@@ -44,28 +36,26 @@
           <div class="text-[12px] font-semibold text-gray-700 mb-2">基础配置</div>
           <div class="grid grid-cols-1 gap-3">
             <div v-for="p in propsSchema" :key="p.name">
-              <label class="block text-[12px] font-medium text-gray-700 mb-1">{{ p.name }} <span class="text-gray-400">({{ p.type }})</span> <span v-if="p.optional" class="text-gray-400">可选</span></label>
+              <label class="block text-[12px] font-medium text-gray-700 mb-1">{{ p.name }} <span
+                  class="text-gray-400">({{ p.type }})</span> <span v-if="p.optional"
+                  class="text-gray-400">可选</span></label>
               <input v-if="p.type === 'string' || p.type === 'any'" v-model="propsValues[p.name]" type="text"
-                     class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
               <input v-else-if="p.type === 'number'" v-model.number="propsValues[p.name]" type="number"
-                     class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
               <label v-else-if="p.type === 'boolean'" class="inline-flex items-center gap-2 text-[12px] text-gray-700">
                 <input v-model="propsValues[p.name]" type="checkbox" />
                 勾选为 true
               </label>
               <input v-else v-model="propsValues[p.name]" type="text"
-                     class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
           </div>
         </div>
         <div class="border rounded-md p-3">
           <div class="text-[12px] font-semibold text-gray-700 mb-2">占位内容</div>
-          <textarea
-            v-model="form.slotContent"
-            rows="5"
-            placeholder="请输入占位内容（纯文本）"
-            class="w-full px-3 py-2 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-          ></textarea>
+          <textarea v-model="form.slotContent" rows="5" placeholder="请输入占位内容（纯文本）"
+            class="w-full px-3 py-2 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
         </div>
       </div>
 
@@ -77,57 +67,41 @@
           <div>
             <label class="block text-[12px] font-medium text-gray-700 mb-1">路由路径（不含前导/）</label>
             <input v-model="form.routePath" type="text" placeholder="例如：my-page"
-                   class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             <div v-if="errors.routePath" class="mt-1 text-[11px] text-red-600">{{ errors.routePath }}</div>
           </div>
           <div>
             <label class="block text-[12px] font-medium text-gray-700 mb-1">路由标题</label>
             <input v-model="form.routeTitle" type="text" placeholder="用于菜单显示的标题"
-                   class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div class="col-span-2">
             <label class="block text-[12px] font-medium text-gray-700 mb-1">路由层级</label>
             <div class="flex items-center gap-6">
               <label class="inline-flex items-center gap-2 text-[12px] text-gray-700">
-                <input type="radio" class="h-3 w-3" value="route" v-model="form.routeType" /> 顶级路由
+                <input type="radio" class="h-3 w-3" value="page" v-model="form.routeType" /> 顶级路由
               </label>
               <label class="inline-flex items-center gap-2 text-[12px] text-gray-700">
                 <input type="radio" class="h-3 w-3" value="child" v-model="form.routeType" /> 子路由
               </label>
             </div>
           </div>
-           <div v-if="form.routeType === 'child'">
+          <div v-if="form.routeType === 'child'">
             <label class="block text-[12px] font-medium text-gray-700 mb-1">父路由</label>
-            <select v-model="form.parentRoute" class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <option v-for="opt in parentOptions" :key="opt.value" :value="opt.value">{{ opt.label }}（{{ opt.value }}）</option>
+            <select v-model="form.parentRoute"
+              class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option v-for="opt in parentOptions" :key="opt.value" :value="opt.value">{{ opt.label }}（{{ opt.value }}）
+              </option>
             </select>
             <div v-if="errors.parentRoute" class="mt-1 text-[11px] text-red-600">{{ errors.parentRoute }}</div>
           </div>
-        <div v-if="form.routeType === 'route'">
-            <label class="block text-[12px] font-medium text-gray-700 mb-1">菜单图标</label>
-            <div class="relative flex items-center gap-2">
-              <Icon :name="form.routeIcon" :size="24" :stroke-width="2" class="text-gray-700" />
-              <input v-model="form.routeIcon" type="text" placeholder="选择或输入图标名称"
-                class="flex-1 px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-              <button @click="openIconPicker"
-                class="px-3 py-2 text-[12px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">选择图标</button>
-            </div>
-          </div>
-          
           <div>
             <label class="block text-[12px] font-medium text-gray-700 mb-1">排序序号（order）</label>
             <input v-model.number="form.routeOrder" type="number" placeholder="例如：10"
-                   class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              class="w-full px-3 h-8 text-[12px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
         </div>
       </div>
-    </div>
-  </EditorModal>
-  <EditorModal :visible="iconPickerVisible" :title="'选择图标'" :widthVw="70" :heightVh="80" :zIndex="602"
-    :showFooter="false" @update:visible="v => { if (!v) iconPickerVisible = false }"
-    @cancel="() => { iconPickerVisible = false }">
-    <div class="h-[calc(80vh-100px)]">
-      <IconPicker v-model="form.routeIcon" @select="handleIconSelected" />
     </div>
   </EditorModal>
 </template>
@@ -137,9 +111,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { upsertRouteEntry, listParentRouteOptions } from '@/core/services/RouteConfigService'
 import EditorModal from '@/components/editor/EditorModal.vue'
 import { fileManagerService } from '@/core/services/FileManagerService'
-import IconPicker from '@/components/editor/IconPicker.vue'
-import Icon from '@/components/layout/contentcommon/Icon.vue'
-interface Emits { (e: 'update:visible', v: boolean): void; (e: 'created', payload: { filePath: string }): void }
+interface Emits { (e: 'update:visible', v: boolean): void;(e: 'created', payload: { filePath: string }): void }
 const emit = defineEmits<Emits>()
 
 const props = defineProps<{ visible: boolean; baseDir?: string }>()
@@ -149,7 +121,7 @@ const visibleProxy = computed({ get: () => props.visible, set: (v: boolean) => e
  * 计算视图文件完整保存路径
  */
 const fullViewPath = computed(() => {
-  const dirCleanAbs = String(currentBaseDir.value || 'src/views').replace(/\\/g,'/').replace(/\/+$/,'')
+  const dirCleanAbs = String(currentBaseDir.value || 'src/views').replace(/\\/g, '/').replace(/\/+$/, '')
   const fname = safeFileName(form.value.fileName || '')
   if (!fname) return `${dirCleanAbs}/未命名.vue`
   return `${dirCleanAbs}/${fname}.vue`
@@ -170,10 +142,9 @@ const form = ref({
   routePath: '',
   routeTitle: '',
   routeOrder: 0,
-  routeIcon: '',
-  routeType: 'route' as 'route' | 'child',
+  routeType: 'page' as 'page' | 'child',
   parentRoute: ''
-  
+
 })
 
 const errors = ref<{ fileName?: string; containerName?: string; routePath?: string; parentRoute?: string }>({})
@@ -182,7 +153,7 @@ const errors = ref<{ fileName?: string; containerName?: string; routePath?: stri
  * 应用基础目录：根据外部选择的目录更新当前保存目录与显示的相对路径
  */
 function applyBaseDir(dir: string): void {
-  const next = String(dir || 'src/views').replace(/\\/g,'/').replace(/\/+$/,'')
+  const next = String(dir || 'src/views').replace(/\\/g, '/').replace(/\/+$/, '')
   currentBaseDir.value = next
   const rel = next.replace(/^src\/views\/?/, '')
   form.value.dirRelPath = rel
@@ -197,8 +168,8 @@ async function loadContainers(): Promise<void> {
     const keys = Object.keys(modules)
     containerOptions.value = keys
       .map(k => {
-        const name = k.split('/').pop()!.replace(/\.vue$/i,'')
-        const normalized = k.replace(/^@\//,'src/').replace(/^\/+/,'').replace(/\\/g,'/')
+        const name = k.split('/').pop()!.replace(/\.vue$/i, '')
+        const normalized = k.replace(/^@\//, 'src/').replace(/^\/+/, '').replace(/\\/g, '/')
         return { name, path: normalized }
       })
     if (!form.value.containerName && containerOptions.value.length) {
@@ -215,7 +186,7 @@ async function loadContainers(): Promise<void> {
         form.value.containerName = containerOptions.value[0].name
         await onContainerChange()
       }
-    } catch {}
+    } catch { }
   }
 }
 
@@ -224,7 +195,7 @@ async function loadContainers(): Promise<void> {
  */
 async function parsePropsFromSource(srcPath: string): Promise<{ schema: Array<{ name: string; type: string; optional: boolean }>; defaults: Record<string, any> }> {
   try {
-    const safePath = String(srcPath).replace(/^\/+/,'').replace(/\\/g,'/')
+    const safePath = String(srcPath).replace(/^\/+/, '').replace(/\\/g, '/')
     const code = await fileManagerService.readFile(safePath)
     const m = code.match(/interface\s+Props\s*\{([\s\S]*?)\}/)
     const schema: Array<{ name: string; type: string; optional: boolean }> = []
@@ -232,7 +203,7 @@ async function parsePropsFromSource(srcPath: string): Promise<{ schema: Array<{ 
       const body = m[1]
       const lines = body.split('\n').map(s => s.trim()).filter(Boolean)
       for (const ln of lines) {
-        const pm = ln.match(/^([a-zA-Z_][\w]*)\??:\s*([^;]+);?/) 
+        const pm = ln.match(/^([a-zA-Z_][\w]*)\??:\s*([^;]+);?/)
         if (pm) {
           const name = pm[1]
           const typeRaw = pm[2].trim()
@@ -255,7 +226,7 @@ async function parsePropsFromSource(srcPath: string): Promise<{ schema: Array<{ 
         if (em) {
           const k = em[1]
           let vRaw = em[2].trim().replace(/,$/, '')
-          if (/^['"]/ .test(vRaw)) defaults[k] = vRaw.replace(/^['"]/,'').replace(/['"]$/,'')
+          if (/^['"]/.test(vRaw)) defaults[k] = vRaw.replace(/^['"]/, '').replace(/['"]$/, '')
           else if (/^(true|false)\b/i.test(vRaw)) defaults[k] = /^true$/i.test(vRaw)
           else if (/^[\d\.]+$/.test(vRaw)) defaults[k] = Number(vRaw)
           else defaults[k] = ''
@@ -285,7 +256,7 @@ async function onContainerChange(): Promise<void> {
       }
     }
     if (propsValues.value['title'] && !form.value.routeTitle) form.value.routeTitle = String(propsValues.value['title'])
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -363,15 +334,15 @@ function deriveComponentName(): string {
  */
 async function writeRouteConfig(aliasCompPath: string): Promise<void> {
   try {
-    const routePath = String(form.value.routePath || '').replace(/^\/+|\/+$/g,'')
+    const routePath = String(form.value.routePath || '').replace(/^\/+|\/+$/g, '')
     await upsertRouteEntry({
       type: form.value.routeType,
-      parentRoute: form.value.routeType === 'child' ? String(form.value.parentRoute || '').replace(/^\/+|\/+$/g,'') : '',
+      parentRoute: form.value.routeType === 'child' ? String(form.value.parentRoute || '').replace(/^\/+|\/+$/g, '') : '',
       route: routePath,
       component: aliasCompPath,
-      meta: { title: form.value.routeTitle || routePath, icon: String(form.value.routeIcon || ''), order: Number(form.value.routeOrder) || 0 }
+      meta: { title: form.value.routeTitle || routePath, order: Number(form.value.routeOrder) || 0 }
     })
-  } catch {}
+  } catch { }
 }
 
 /**
@@ -380,10 +351,10 @@ async function writeRouteConfig(aliasCompPath: string): Promise<void> {
 async function saveNewView(): Promise<void> {
   if (!validate()) return
   const filePath = fullViewPath.value
-  const dir = filePath.replace(/\\/g, '/').replace(/\/+$/,'').replace(/\/(?:[^/]+)$/,'')
+  const dir = filePath.replace(/\\/g, '/').replace(/\/+$/, '').replace(/\/(?:[^/]+)$/, '')
   try {
     await fileManagerService.createDir(dir)
-  } catch {}
+  } catch { }
   const content = buildSfcContent()
   try {
     const files = await fileManagerService.listFiles(dir)
@@ -399,11 +370,11 @@ async function saveNewView(): Promise<void> {
     await fileManagerService.writeFile(targetPath, content)
     if (form.value.configureRoute) {
       const effectiveRoutePath = String(form.value.routePath || baseName)
-      const alias = `@/${targetPath.replace(/^src\//,'')}`
+      const alias = `@/${targetPath.replace(/^src\//, '')}`
       form.value.routePath = effectiveRoutePath
       await writeRouteConfig(alias)
     }
-  } catch {}
+  } catch { }
   emit('created', { filePath: fullViewPath.value })
   emit('update:visible', false)
 }
@@ -421,7 +392,7 @@ onMounted(() => {
 })
 
 function safeFileName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_\-\u4e00-\u9fff]/g, '').replace(/^\s+|\s+$/g,'') || ''
+  return name.replace(/[^a-zA-Z0-9_\-\u4e00-\u9fff]/g, '').replace(/^\s+|\s+$/g, '') || ''
 }
 
 /**
@@ -435,21 +406,6 @@ async function loadParentRouteOptions(): Promise<void> {
   }
 }
 
-/**
- * 打开图标选择器弹窗
- */
-const iconPickerVisible = ref(false)
-function openIconPicker(): void {
-  iconPickerVisible.value = true
-}
-
-/**
- * 处理从图标选择器选中的图标并回填
- */
-function handleIconSelected(payload: { name: string; type: 'lucide' | 'static'; src?: string }): void {
-  form.value.routeIcon = payload.name
-  iconPickerVisible.value = false
-}
 </script>
 
 <style scoped>

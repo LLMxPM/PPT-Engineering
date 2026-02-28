@@ -1,201 +1,129 @@
 <template>
   <div class="responsive-layout" :class="{ 'responsive-layout--fullscreen': isFullscreen }" :style="themeStyles">
     <!-- 应用设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="appSettingsVisible && !isFullscreen" class="settings-wrapper">
+    <div v-if="isDev && appSettingsVisible && !isFullscreen" class="settings-wrapper">
       <AppSettingsPanel :visible="appSettingsVisible" @close="closeAppSettings" @update="handleAppUpdate" />
     </div>
     <!-- 路由设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="routeSettingsVisible && !isFullscreen" class="settings-wrapper">
+    <div v-if="isDev && routeSettingsVisible && !isFullscreen" class="settings-wrapper">
       <RouteSettingsPanel :visible="routeSettingsVisible" @close="closeRouteSettings" @update="handleRouteUpdate" />
     </div>
     <!-- 主题设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="themeSettingsVisible && !isFullscreen" class="settings-wrapper">
+    <div v-if="isDev && themeSettingsVisible && !isFullscreen" class="settings-wrapper">
       <ThemeSettingsPanel :visible="themeSettingsVisible" @close="closeThemeSettings" @update="handleThemeUpdate" />
     </div>
     <!-- 图标设置面板容器：放在侧边栏的左侧，仅在非全屏且面板可见时显示 -->
-    <div v-if="iconSettingsVisible && !isFullscreen" class="settings-wrapper">
+    <div v-if="isDev && iconSettingsVisible && !isFullscreen" class="settings-wrapper">
       <IconSettingsPanel :visible="iconSettingsVisible" @close="closeIconSettings" @update="handleIconUpdate" />
     </div>
- 
+
     <!-- 响应式侧边栏 -->
-    <div 
-      class="sidebar-wrapper"
-      :class="{
-        'sidebar-wrapper--fullscreen': isFullscreen,
-        'sidebar-wrapper--fullscreen-hover': isFullscreen && isSidebarHovered
-      }"
-      @mouseenter="handleSidebarMouseEnter"
-      @mouseleave="handleSidebarMouseLeave"
-    >
-      <ResponsiveSidebar
-        :navigation-items="processedNavigationItems"
-        :app-config="appConfig.app"
-        @collapse-change="handleCollapseChange"
-        @open-app-settings="openAppSettings"
-        @open-route-settings="openRouteSettings"
-        @open-theme-settings="openThemeSettings"
-        @open-icon-settings="openIconSettings"
-        @open-resource-manager="openResourceManager"
-      />
+    <div class="sidebar-wrapper" :class="{
+      'sidebar-wrapper--fullscreen': isFullscreen,
+      'sidebar-wrapper--fullscreen-hover': isFullscreen && isSidebarHovered
+    }" @mouseenter="handleSidebarMouseEnter" @mouseleave="handleSidebarMouseLeave">
+      <ResponsiveSidebar :navigation-items="processedNavigationItems" :app-config="appConfig.app"
+        @collapse-change="handleCollapseChange" @open-app-settings="openAppSettings"
+        @open-route-settings="openRouteSettings" @open-theme-settings="openThemeSettings"
+        @open-icon-settings="openIconSettings" @open-resource-manager="openResourceManager" />
     </div>
 
     <!-- 全屏模式下的左侧悬停触发区域 -->
-    <div 
-      v-if="isFullscreen"
-      class="fullscreen-sidebar-trigger"
-      @mouseenter="handleSidebarMouseEnter"
-      @mouseleave="handleSidebarMouseLeave"
-    ></div>
+    <div v-if="isFullscreen" class="fullscreen-sidebar-trigger" @mouseenter="handleSidebarMouseEnter"
+      @mouseleave="handleSidebarMouseLeave"></div>
 
     <!-- 主内容区域 -->
-    <main 
-      class="main-content"
-      :class="{
-        'main-content--collapsed': isCollapsed ,
-        'main-content--fullscreen': isFullscreen
-      }"
-    >
+    <main class="main-content" :class="{
+      'main-content--collapsed': isCollapsed,
+      'main-content--fullscreen': isFullscreen
+    }">
       <!-- 全屏模式下的右上角悬停触发区域 -->
-      <div 
-        v-if="isFullscreen"
-        class="fullscreen-button-trigger"
-        @mouseenter="handleFullscreenButtonMouseEnter"
-        @mouseleave="handleFullscreenButtonMouseLeave"
-      ></div>
+      <div v-if="isFullscreen" class="fullscreen-button-trigger" @mouseenter="handleFullscreenButtonMouseEnter"
+        @mouseleave="handleFullscreenButtonMouseLeave"></div>
 
       <!-- 全屏切换按钮 -->
-      <button 
-        class="fullscreen-button"
-        :class="{
-          'fullscreen-button--fullscreen': isFullscreen
-        }"
-        @click.stop="toggleFullscreen"
-        :title="isFullscreen ? '退出全屏' : '进入全屏'"
-        @mouseenter="handleFullscreenButtonMouseEnter"
-        @mouseleave="handleFullscreenButtonMouseLeave"
-      >
+      <button class="fullscreen-button" :class="{
+        'fullscreen-button--fullscreen': isFullscreen
+      }" @click.stop="toggleFullscreen" :title="isFullscreen ? '退出全屏' : '进入全屏'"
+        @mouseenter="handleFullscreenButtonMouseEnter" @mouseleave="handleFullscreenButtonMouseLeave">
         <Minimize2 v-if="isFullscreen" :size="20" />
         <Maximize2 v-else :size="20" />
       </button>
 
       <!-- 页面导航按钮 -->
-      <div 
-        class="page-navigation-buttons"
-        :class="{
-          'page-navigation-buttons--fullscreen': isFullscreen
-        }"
-        @mouseenter="handleFullscreenButtonMouseEnter"
-        @mouseleave="handleFullscreenButtonMouseLeave"
-      >
+      <div class="page-navigation-buttons" :class="{
+        'page-navigation-buttons--fullscreen': isFullscreen
+      }" @mouseenter="handleFullscreenButtonMouseEnter" @mouseleave="handleFullscreenButtonMouseLeave">
         <!-- PDF导出按钮 -->
-        <button 
-          v-if="shouldShowPdfExportButton"
-          class="nav-button nav-button--export"
-          :class="{
-            'nav-button--fullscreen': isFullscreen
-          }"
-          @click.stop="showPDFExportDialog"
-          title="导出PDF"
-        >
+        <button v-if="shouldShowPdfExportButton" class="nav-button nav-button--export" :class="{
+          'nav-button--fullscreen': isFullscreen
+        }" @click.stop="showPDFExportDialog" title="导出PDF">
           <FileDown :size="16" />
         </button>
 
-        <!-- 编辑按钮 -->
-        <button
-          class="nav-button"
-          :class="{
-            'nav-button--fullscreen': isFullscreen,
-            'nav-button--disabled': !canEditCurrentPage
-          }"
-          :disabled="!canEditCurrentPage"
-          @click.stop="openEditModal"
-          :title="canEditCurrentPage ? '编辑当前页面' : '当前页面不可编辑'"
-        >
+        <!-- 编辑按钮 (仅开发模式显示) -->
+        <button v-if="isDev" class="nav-button" :class="{
+          'nav-button--fullscreen': isFullscreen,
+          'nav-button--disabled': !canEditCurrentPage
+        }" :disabled="!canEditCurrentPage" @click.stop="openEditModal"
+          :title="canEditCurrentPage ? '编辑当前页面' : '当前页面不可编辑'">
           <Pencil :size="16" />
         </button>
 
         <!-- 上一页按钮 -->
-        <button 
-          class="nav-button nav-button--previous"
-          :class="{
-            'nav-button--disabled': !canGoPrevious,
-            'nav-button--fullscreen': isFullscreen
-          }"
-          @click.stop="goToPreviousPage"
-          :disabled="!canGoPrevious"
-          :title="canGoPrevious ? `上一页 ${getPageTitle(previousPage)}` : '没有上一页'"
-        >
+        <button class="nav-button nav-button--previous" :class="{
+          'nav-button--disabled': !canGoPrevious,
+          'nav-button--fullscreen': isFullscreen
+        }" @click.stop="goToPreviousPage" :disabled="!canGoPrevious"
+          :title="canGoPrevious ? `上一页 ${getPageTitle(previousPage)}` : '没有上一页'">
           <ChevronLeft :size="16" />
         </button>
 
         <!-- 下一页按钮 -->
-        <button 
-          class="nav-button nav-button--next"
-          :class="{
-            'nav-button--disabled': !canGoNext,
-            'nav-button--fullscreen': isFullscreen
-          }"
-          @click.stop="goToNextPage"
-          :disabled="!canGoNext"
-          :title="canGoNext ? `下一页 ${getPageTitle(nextPage)}` : '没有下一页'"
-        >
+        <button class="nav-button nav-button--next" :class="{
+          'nav-button--disabled': !canGoNext,
+          'nav-button--fullscreen': isFullscreen
+        }" @click.stop="goToNextPage" :disabled="!canGoNext"
+          :title="canGoNext ? `下一页 ${getPageTitle(nextPage)}` : '没有下一页'">
           <ChevronRightIcon :size="16" />
         </button>
       </div>
 
       <!-- 页面内容 -->
-      <div 
-        class="page-content-wrapper"
-      >
-        <FixedRatioContainer
-          :is-fullscreen="isFullscreen"
-          :scale="scaleRatio"
-        >
-          <router-view v-slot="{ Component, route }">
-            <transition name="page" mode="out-in">
-              <component :is="Component" :key="route.path" />
-            </transition>
-          </router-view>
+      <div class="page-content-wrapper">
+        <FixedRatioContainer :is-fullscreen="isFullscreen" :scale="scaleRatio">
+          <ErrorBoundary>
+            <router-view v-slot="{ Component, route }">
+              <transition :name="isExportingPdf ? 'none' : 'page'" :mode="isExportingPdf ? undefined : 'out-in'">
+                <component :is="Component" :key="route.path" />
+              </transition>
+            </router-view>
+          </ErrorBoundary>
         </FixedRatioContainer>
       </div>
 
-      <EditorModal
-        v-model:visible="isEditModalVisible"
-        title="编辑页面"
-        :widthVw="95"
-        :heightVh="95"
-        :showFooter="false"
-        :zIndex="1100"
-      >
-        <SplitEditorPreview
-          v-if="currentEditFilePath"
-          :filePath="currentEditFilePath"
-          :initialLeftPercent="55"
-          :initialAutoSave="true"
-          @saved="handleEditSaved"
-        />
+      <EditorModal v-if="isDev" v-model:visible="isEditModalVisible" title="编辑页面" :widthVw="95" :heightVh="95"
+        :showFooter="false" :zIndex="1100">
+        <SplitEditorPreview v-if="currentEditFilePath" :filePath="currentEditFilePath" :initialLeftPercent="55"
+          :initialAutoSave="true" @saved="handleEditSaved" />
         <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-600">未找到可编辑的页面文件</div>
       </EditorModal>
     </main>
 
     <!-- PDF导出对话框 -->
-    <PDFExportDialog
-      v-model:visible="isPDFExportDialogVisible"
-      @export-start="handlePDFExportStart"
-      @export-complete="handlePDFExportComplete"
-      @export-error="handlePDFExportError"
-    />
+    <PDFExportDialog v-model:visible="isPDFExportDialogVisible" @export-start="handlePDFExportStart"
+      @export-complete="handlePDFExportComplete" @export-error="handlePDFExportError" />
 
     <!-- 资源管理弹窗 -->
-    <ResourceManagerModal v-model:visible="resourceManagerVisible" />
+    <ResourceManagerModal v-if="isDev" v-model:visible="resourceManagerVisible" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
-  Maximize2, 
+import {
+  Maximize2,
   Minimize2,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
@@ -204,21 +132,25 @@ import {
 } from 'lucide-vue-next'
 import ResponsiveSidebar from '@/layouts/ResponsiveSidebar.vue'
 import FixedRatioContainer from '@/layouts/FixedRatioContainer.vue'
-import AppSettingsPanel from '@/layouts/SettingModule/AppSettingsPanel.vue'
-import RouteSettingsPanel from '@/layouts/SettingModule/RouteSettingsPanel.vue'
-import ThemeSettingsPanel from '@/layouts/SettingModule/ThemeSettingsPanel.vue'
-import IconSettingsPanel from '@/layouts/SettingModule/IconSettingsPanel.vue'
 import PDFExportDialog from '@/layouts/PDFExportDialog.vue'
-import ResourceManagerModal from '@/layouts/SettingModule/ResourceManagerModal.vue'
+import ErrorBoundary from '@/components/common/ErrorBoundary.vue'
 import { useMenu } from '@/core/composables/useMenu'
 import { usePageNavigation } from '@/core/composables/usePageNavigation'
 import { PDFExportService } from '@/core/services/PDFExportService'
 import { appConfig } from '@/core/utils/config'
-import SplitEditorPreview from '@/components/editor/SplitEditorPreview.vue'
-import EditorModal from '@/components/editor/EditorModal.vue'
 import { loadRouteConfig } from '@/core/utils/config'
 import { normalizeViewComponentPath as svcNormalize } from '@/core/services/RouteConfigService'
 import { useTheme } from '@/core/composables/useTheme'
+
+const isDev = import.meta.env.DEV
+
+const AppSettingsPanel = isDev ? defineAsyncComponent(() => import('@/layouts/SettingModule/AppSettingsPanel.vue')) : null as any
+const RouteSettingsPanel = isDev ? defineAsyncComponent(() => import('@/layouts/SettingModule/RouteSettingsPanel.vue')) : null as any
+const ThemeSettingsPanel = isDev ? defineAsyncComponent(() => import('@/layouts/SettingModule/ThemeSettingsPanel.vue')) : null as any
+const IconSettingsPanel = isDev ? defineAsyncComponent(() => import('@/layouts/SettingModule/IconSettingsPanel.vue')) : null as any
+const ResourceManagerModal = isDev ? defineAsyncComponent(() => import('@/layouts/SettingModule/ResourceManagerModal.vue')) : null as any
+const SplitEditorPreview = isDev ? defineAsyncComponent(() => import('@/components/editor/SplitEditorPreview.vue')) : null as any
+const EditorModal = isDev ? defineAsyncComponent(() => import('@/components/editor/EditorModal.vue')) : null as any
 
 // 应用配置已迁移到 @/config/app.config.ts
 
@@ -231,6 +163,8 @@ const isFullscreen = ref(false)
 const isSidebarHovered = ref(false)
 const isFullscreenButtonHovered = ref(false)
 const isPDFExportDialogVisible = ref(false)
+// 正在导出PDF的状态
+const isExportingPdf = ref(false)
 // 应用/路由设置面板可见性
 // 初始化在下方通过 sessionStorage 恢复
 
@@ -578,16 +512,16 @@ const handleKeydown = (event: KeyboardEvent): void => {
     toggleFullscreen()
     return
   }
-  
+
   // 只在全屏模式下处理其他键盘事件
   if (!isFullscreen.value) return
-  
+
   // 防止在输入框等元素中触发
   const target = event.target as HTMLElement
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
     return
   }
-  
+
   switch (event.key) {
     case 'PageDown':
     case 'ArrowRight':
@@ -608,7 +542,7 @@ const handleKeydown = (event: KeyboardEvent): void => {
  */
 const handleFullscreenChange = (): void => {
   isFullscreen.value = !!document.fullscreenElement
-  
+
   // 退出全屏时重置悬停状态
   if (!isFullscreen.value) {
     isSidebarHovered.value = false
@@ -628,6 +562,7 @@ const showPDFExportDialog = (): void => {
  */
 const handlePDFExportStart = (): void => {
   console.log('PDF导出开始')
+  isExportingPdf.value = true
 }
 
 /**
@@ -636,6 +571,7 @@ const handlePDFExportStart = (): void => {
  */
 const handlePDFExportComplete = (result: any): void => {
   console.log('PDF导出完成:', result)
+  isExportingPdf.value = false
 }
 
 /**
@@ -644,6 +580,7 @@ const handlePDFExportComplete = (result: any): void => {
  */
 const handlePDFExportError = (error: Error): void => {
   console.error('PDF导出失败:', error)
+  isExportingPdf.value = false
 }
 
 /**
@@ -655,7 +592,7 @@ onMounted(() => {
   pdfExportService.setRouter(router)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
   document.addEventListener('keydown', handleKeydown)
-  
+
   // 初始化窗口尺寸并监听变化，用于缩放计算
   handleResize()
   window.addEventListener('resize', handleResize)
@@ -823,7 +760,7 @@ async function resolveComponentPathForCurrentRoute(): Promise<string> {
         return ''
       }
     }
-  } catch {}
+  } catch { }
   return ''
 }
 </script>
@@ -832,12 +769,16 @@ async function resolveComponentPathForCurrentRoute(): Promise<string> {
 /* 路由设置面板容器样式：左侧固定宽度，与面板宽度一致 */
 .settings-wrapper {
   width: 360px;
-  flex: 0 0 360px; /* 固定宽度，不参与收缩 */
+  flex: 0 0 360px;
+  /* 固定宽度，不参与收缩 */
   height: 100vh;
-  border-right: 1px solid #e5e7eb; /* gray-200 */
+  border-right: 1px solid #e5e7eb;
+  /* gray-200 */
   background: #ffffff;
-  z-index: 101; /* 高于侧边栏基础层级 */
+  z-index: 101;
+  /* 高于侧边栏基础层级 */
 }
+
 /* 响应式布局容器 - 固定比例模式 */
 .responsive-layout {
   display: flex;
@@ -1057,7 +998,8 @@ async function resolveComponentPathForCurrentRoute(): Promise<string> {
   height: 100vh;
   position: relative;
   z-index: 99;
-  padding: 0; /* 全屏模式下不设置padding，让内容完全占满屏幕 */
+  padding: 0;
+  /* 全屏模式下不设置padding，让内容完全占满屏幕 */
   /* 在全屏模式下保持居中对齐 */
   justify-content: center;
   align-items: center;
@@ -1084,8 +1026,8 @@ async function resolveComponentPathForCurrentRoute(): Promise<string> {
     为了获得最佳性能，我们明确指定只对 opacity 和 transform 属性进行过渡。
   */
   transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  
+    transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
   /* 确保在动画播放期间，元素是可见的，否则动画不会播放 */
   visibility: visible;
 }
@@ -1095,7 +1037,8 @@ async function resolveComponentPathForCurrentRoute(): Promise<string> {
 */
 .page-enter-from {
   opacity: 0;
-  transform: translateX(30px); /* 从右侧 30px 的位置开始进入 */
+  transform: translateX(30px);
+  /* 从右侧 30px 的位置开始进入 */
 }
 
 /* 定义“离开”动画的结束状态。
@@ -1103,7 +1046,8 @@ async function resolveComponentPathForCurrentRoute(): Promise<string> {
 */
 .page-leave-to {
   opacity: 0;
-  transform: translateX(-30px); /* 向左侧 -30px 的位置移出 */
+  transform: translateX(-30px);
+  /* 向左侧 -30px 的位置移出 */
 }
 
 /* 响应式设计 */

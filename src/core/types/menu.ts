@@ -4,12 +4,11 @@
 
 /**
  * 菜单项接口
- */ 
+ */
 export interface MenuItem {
   id: string
   title: string
   path: string
-  icon?: string
   order: number
   hidden: boolean
   disabled: boolean

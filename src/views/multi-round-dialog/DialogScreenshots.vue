@@ -18,16 +18,14 @@
               <h3 class="font-heading text-2xl font-bold text-primary">封面页</h3>
             </div>
             <div class="grid grid-cols-3 gap-6 pl-4">
-              <div v-for="i in 3" :key="`round1-${i}`" class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
+              <div v-for="i in 3" :key="`round1-${i}`"
+                class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
                 <div class="p-4 bg-gray-50 border-b border-gray-200">
                   <h4 class="font-heading text-lg font-semibold text-secondary">封面页截图 {{ i }}</h4>
                 </div>
                 <div class="p-4">
-                  <img 
-                    :src="getImagePath(1, i)" 
-                    alt="封面页截图 ${i}" 
-                    class="w-full h-auto object-contain rounded-lg shadow-sm"
-                  />
+                  <img :src="getImagePath(1, i)" alt="封面页截图 ${i}"
+                    class="w-full h-auto object-contain rounded-lg shadow-sm" />
                 </div>
               </div>
             </div>
@@ -40,16 +38,14 @@
               <h3 class="font-heading text-2xl font-bold text-primary">设计理念页面</h3>
             </div>
             <div class="grid grid-cols-3 gap-6 pl-4">
-              <div v-for="i in 10" :key="`round2-${i}`" class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
+              <div v-for="i in 10" :key="`round2-${i}`"
+                class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
                 <div class="p-4 bg-gray-50 border-b border-gray-200">
                   <h4 class="font-heading text-lg font-semibold text-secondary">设计理念截图 {{ i }}</h4>
                 </div>
                 <div class="p-4">
-                  <img 
-                    :src="getImagePath(2, i)" 
-                    alt="设计理念截图 ${i}" 
-                    class="w-full h-auto object-contain rounded-lg shadow-sm"
-                  />
+                  <img :src="getImagePath(2, i)" alt="设计理念截图 ${i}"
+                    class="w-full h-auto object-contain rounded-lg shadow-sm" />
                 </div>
               </div>
             </div>
@@ -62,16 +58,14 @@
               <h3 class="font-heading text-2xl font-bold text-primary">项目架构页面</h3>
             </div>
             <div class="grid grid-cols-3 gap-6 pl-4">
-              <div v-for="i in 3" :key="`round3-${i}`" class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
+              <div v-for="i in 3" :key="`round3-${i}`"
+                class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
                 <div class="p-4 bg-gray-50 border-b border-gray-200">
                   <h4 class="font-heading text-lg font-semibold text-secondary">项目架构截图 {{ i }}</h4>
                 </div>
                 <div class="p-4">
-                  <img 
-                    :src="getImagePath(3, i)" 
-                    alt="项目架构截图 ${i}" 
-                    class="w-full h-auto object-contain rounded-lg shadow-sm"
-                  />
+                  <img :src="getImagePath(3, i)" alt="项目架构截图 ${i}"
+                    class="w-full h-auto object-contain rounded-lg shadow-sm" />
                 </div>
               </div>
             </div>
@@ -84,16 +78,14 @@
               <h3 class="font-heading text-2xl font-bold text-primary">当前页面</h3>
             </div>
             <div class="grid grid-cols-3 gap-6 pl-4">
-              <div v-for="i in 4" :key="`round4-${i}`" class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
+              <div v-for="i in 4" :key="`round4-${i}`"
+                class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-md">
                 <div class="p-4 bg-gray-50 border-b border-gray-200">
                   <h4 class="font-heading text-lg font-semibold text-secondary">当前页面截图 {{ i }}</h4>
                 </div>
                 <div class="p-4">
-                  <img 
-                    :src="getImagePath(4, i)" 
-                    alt="当前页面截图 ${i}" 
-                    class="w-full h-auto object-contain rounded-lg shadow-sm"
-                  />
+                  <img :src="getImagePath(4, i)" alt="当前页面截图 ${i}"
+                    class="w-full h-auto object-contain rounded-lg shadow-sm" />
                 </div>
               </div>
             </div>
@@ -110,7 +102,7 @@ import { resolveResourcePath } from '@/core/utils/path'
 
 // 处理图片路径的函数
 const getImagePath = (round: number, index: number): string => {
-  return resolveResourcePath(`img/插图/多轮对话章节/${round}-${index}.png`)
+  return resolveResourcePath(`img/illus/插图/多轮对话章节/${round}-${index}.png`)
 }
 
 </script>

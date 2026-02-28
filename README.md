@@ -2,15 +2,20 @@
 - 基于大模型当前通用能力强，但是没有记忆能力，长上下文昂贵且不稳定的现状，尝试构建一个框架，降低上下文依赖，为AI编写PPT构建基础；实现完全自定义的PPT页面构建而不是让AI套模板
 - 作者是个产品经理，没有实际代码经验，项目代码完全依赖于AI，因此项目结构与实现方式可能有一定局限性。欢迎反馈与建议，共同完善项目。
 
-## Demo 展示
+## 生成的 Demo 展示
 - [PPT Engineering Demo](https://llmxpm.github.io/PPT-Engineering/)
 
 ### 产品截图
-![整体结构](public/img/product/image1.png)
-![具体页面1](public/img/product/image2.png)
-![具体页面2](public/img/product/image3.png)
-![具体页面3](public/img/product/image4.png)
-![导出PDF](public/img/product/image5.png)
+![成品概览](public/img/product/成品概览.png)
+![全屏放映](public/img/product/全屏放映.png)
+![导出PDF](public/img/product/导出PDF.png)
+
+### 配置与简单编辑
+![主题编辑](public/img/product/主题编辑.png)
+![基础配置](public/img/product/基础配置.png)
+![图片管理](public/img/product/图片管理.png)
+![图标管理](public/img/product/图标管理.png)
+![页面编辑](public/img/product/页面编辑.png)
 
 ## 设计理念
 - 项目脱离 .ppt文件，使用vue直接构建页面
@@ -20,30 +25,29 @@
 - 统一主题风格：扩展tailwindcss的主题配置，提供统一的颜色、字体
 
 ## 主要功能
-- 页面管理：管理src/views 目录下的页面文件即可，单个页面只需关注单个文件。
-- 路由配置：通过 `public/config/routes.config.yaml` 即可快速配置路由，支持模块、子路由、自定义元数据（如标题、图标、排序等）。
-- 主题切换：提供主题系统（可配置logo、颜色、字体大小等），同时在theme.config.yaml中可快速修改、增加主题。
-- 图标支持：统一的 `Icon` 组件，集成 Lucide 图标库+自定义图标，支持按需使用，增加、删除在icons.config.yaml中即可完成配置。
+- 页面管理：管理 `src/views` 目录下的页面文件即可，单个页面只需关注单个文件。同时开发模式下支持**可视化页面资源管理器**，便捷进行组件的预览和选择。
+- 路由配置：支持 `分组路由`、`独立页面`、`子页面`三种层级。开发模式下提供强大的**可视化路由编辑器**，可直接在侧边栏新增/编辑路由，修改标题、路径、排序及选择组件，系统会自动同步更新 `public/config/routes.config.yaml`。
+- 多模式侧边栏：支持通过 `app.config.yaml` 配置 `menuMode`，轻松切换菜单显示为文本列表模式（可悬浮预览页面）或缩略图预览模式。
+- 主题切换：提供主题系统（可配置logo、颜色、字体大小等），同时在 `themes.config.yaml` 中可快速修改、增加主题。
 - 全屏放映：支持将页面全屏展示，提供翻页按钮，同时监听PageUp/Down、空格、左、右键等常用翻页按键。
-- 页面导出: 基于snapdom库，支持将页面导出为全图PDF文件。
-- 默认页面：提供了默认的homepage、endpage、tableofcontents页面，分别对应PPT的首页、结束页、目录页，可自行修改
+- 页面导出：基于 snapdom 库，支持将页面导出为全图 PDF 文件。
+- 默认页面：提供了默认的首页、结束页、目录页，可自行修改对应视图。
 
 ## 安装与使用指南
 1. 环境准备
    - Node.js ≥ 18
-   - 推荐使用 pnpm（也可使用 npm）
+   - 强力推荐使用 pnpm 作为前端包管理工具
    - clone项目：`git clone https://github.com/yourusername/ppt-engineering.git`
 2. 安装依赖
-   - 使用 pnpm：`pnpm install`
-   - 使用 npm：`npm install`
+   - 运行：`pnpm install`
 3. 本地开发
-   - 运行：`pnpm dev`（或 `npm run dev`）
+   - 运行：`pnpm dev`
    - 访问：
      - 若 `public/config/app.config.yaml` 中 `app.baseUrl` 为 `/`：打开 `http://localhost:5173/`
-     - 若 `app.baseUrl` 为 `/PPT/`：打开 `http://localhost:5173/PPT/`
+     - 开发模式下，左侧导航栏和设置面板支持对路由及页面组件进行可视化配置。
 4. 构建与本地预览
-   - 构建：`pnpm build`（或 `npm run build`），产物输出至 `dist/`
-   - 预览：`pnpm preview`（或 `npm run preview`）
+   - 构建：`pnpm build`，产物输出至 `dist/`（由于编辑组件仅属于开发态，生产构建时会自动剥离以提高首屏加载性能）
+   - 预览：`pnpm preview`
    - 访问：`http://localhost:4173/`（若设置了 `baseUrl` 为非 `/`，请在路径后拼接该前缀）
 5. 部署建议
    - GitHub Pages 等子路径部署时，将 `app.baseUrl` 设置为仓库名前缀（例如 `/PPT/`）。根路径部署（主域名）则设置为 `/`。
@@ -81,7 +85,6 @@ routes:
     component: "@/views/my-new-module/MyNewPage.vue"
     meta:
       title: "我的新页面"
-      icon: "FileText"
       order: 10
 ```
 
@@ -96,7 +99,7 @@ routes:
 - 路由配置指南：[docs/routes-config-guide.md](docs/routes-config-guide.md)
 
 ## TodoList
-- [ ] 主题系统增加调色板，方便增加、切换主题
+- [x] 主题系统增加调色板，方便增加、切换主题
 - [ ] 页面切换动画优化
 - [ ] 增加Echart图表渲染能力
 - [ ] 页面比例支持配置
