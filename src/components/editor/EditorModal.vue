@@ -10,7 +10,8 @@
 
 <template>
   <teleport to="body">
-    <div v-if="visible" class="fixed inset-0 flex items-center justify-center" :style="overlayStyle" @click.self="onOverlayClick">
+    <div v-if="visible" class="fixed inset-0 flex items-center justify-center" :style="overlayStyle"
+      @click.self="onOverlayClick">
       <div class="bg-white rounded-lg shadow-xl mx-4 flex flex-col" :style="containerStyle">
         <!-- 头部 -->
         <div class="flex items-center justify-between p-3 border-b border-gray-200">
@@ -27,14 +28,18 @@
 
         <!-- 底部操作 -->
         <div v-if="showFooter" class="flex justify-end gap-2 p-2 border-t border-gray-200">
-          <button @click="handleCancel" class="px-3 py-1.5 text-[14px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">{{ cancelText }}</button>
-          <button @click="handleOk" class="px-3 py-1.5 text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">{{ okText }}</button>
+          <button @click="handleCancel"
+            class="px-3 py-1.5 text-[14px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">{{
+            cancelText }}</button>
+          <button @click="handleOk"
+            class="px-3 py-1.5 text-[14px] font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">{{
+            okText }}</button>
         </div>
         <slot name="footer" />
       </div>
     </div>
   </teleport>
-  </template>
+</template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, withDefaults } from 'vue'

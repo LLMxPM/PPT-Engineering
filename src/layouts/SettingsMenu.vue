@@ -7,21 +7,16 @@
 
 <template>
   <Teleport to="body">
-    <div
-      v-if="visible"
-      :class="['fixed pointer-events-auto z-[9999]']"
-      :style="{ top: position.top + 'px', left: position.left + 'px' }"
-      @mouseenter="keepMenuVisible"
-      @mouseleave="handleMouseLeave"
-    >
+    <div v-if="visible" :class="['fixed pointer-events-auto z-[9999]']"
+      :style="{ top: position.top + 'px', left: position.left + 'px' }" @mouseenter="keepMenuVisible"
+      @mouseleave="handleMouseLeave">
       <div class="bg-white border border-gray-200 rounded-xl shadow-2xl p-2 min-w-[200px] whitespace-nowrap">
         <div class="font-semibold text-gray-900 px-3 py-2 mb-1 border-b border-gray-200 text-[14px]">配置工具</div>
         <ul class="list-none m-0 p-0">
           <li>
             <button
               class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
-              @click="handleAppSettings"
-            >
+              @click="handleAppSettings">
               <Settings :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>基础设置</span>
             </button>
@@ -29,8 +24,7 @@
           <li>
             <button
               class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
-              @click="handleRouteSettings"
-            >
+              @click="handleRouteSettings">
               <Route :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>路由设置</span>
             </button>
@@ -38,8 +32,7 @@
           <li>
             <button
               class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
-              @click="handleThemeSettings"
-            >
+              @click="handleThemeSettings">
               <Palette :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>主题配置</span>
             </button>
@@ -48,8 +41,7 @@
           <li>
             <button
               class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
-              @click="handleIconSettings"
-            >
+              @click="handleIconSettings">
               <Shapes :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>图标管理</span>
             </button>
@@ -58,8 +50,7 @@
           <li>
             <button
               class="group flex items-center gap-2.5 w-full px-3 py-2.5 text-gray-700 bg-transparent rounded-lg transition-colors duration-200 text-[14px] cursor-pointer text-left hover:bg-gray-100 hover:text-gray-900"
-              @click="handleAssetSettings"
-            >
+              @click="handleAssetSettings">
               <FolderOpen :size="18" class="shrink-0 text-gray-500 group-hover:text-blue-500" />
               <span>资源管理</span>
             </button>

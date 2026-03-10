@@ -14,14 +14,15 @@
       <div v-else class="w-full h-full flex items-center justify-center text-[12px] text-gray-500">无可预览组件</div>
       <div v-if="inspectMode && hoverRect" class="absolute pointer-events-none z-50" :style="overlayStyle">
         <div class="w-full h-full border border-emerald-500/80 bg-emerald-500/10"></div>
-        <div class="absolute -top-6 left-0 px-1.5 py-0.5 text-[10px] rounded bg-emerald-600 text-white">{{ hoverLabel }}</div>
+        <div class="absolute -top-6 left-0 px-1.5 py-0.5 text-[10px] rounded bg-emerald-600 text-white">{{ hoverLabel }}
+        </div>
       </div>
     </FixedRatioContainer>
   </div>
-  </template>
+</template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick, defineAsyncComponent, ComponentPublicInstance, computed } from 'vue'
+import { ref, shallowRef, watch, onMounted, onUnmounted, nextTick, defineAsyncComponent, ComponentPublicInstance, computed } from 'vue'
 import FixedRatioContainer from '@/layouts/FixedRatioContainer.vue'
 
 /**
@@ -56,7 +57,7 @@ const scale = ref<number>(1)
 let resizeObserver: ResizeObserver | null = null
 
 /** 预览异步组件与刷新 key */
-const comp = ref<any | null>(null)
+const comp = shallowRef<any | null>(null)
 const refreshKey = ref<number>(0)
 
 /** 悬浮高亮遮罩状态 */
@@ -77,7 +78,6 @@ interface InspectPayload {
   id?: string
   text?: string
   attrs?: { name: string; value: string }[]
-  source?: { file?: string; startLine?: number; startColumn?: number; endLine?: number; endColumn?: number }
 }
 
 /**
@@ -200,9 +200,9 @@ function setupInspectListener(): void {
   const leaveHandler = () => { clearHoverOverlay() }
   el.addEventListener('mousemove', moveHandler, true)
   el.addEventListener('mouseleave', leaveHandler, true)
-  ;(el as any)._inspectHandler = handler
-  ;(el as any)._inspectMoveHandler = moveHandler
-  ;(el as any)._inspectLeaveHandler = leaveHandler
+    ; (el as any)._inspectHandler = handler
+    ; (el as any)._inspectMoveHandler = moveHandler
+    ; (el as any)._inspectLeaveHandler = leaveHandler
 }
 
 function teardownInspectListener(): void {
@@ -238,19 +238,17 @@ function buildInspectPayload(target: HTMLElement): InspectPayload {
   const selector = buildSimpleSelector(tag, id, classes)
   const text = (target.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120)
   const attrs = collectElementAttrs(target)
-  const inspector = parseInspectorMeta(target)
-  const srcFile = inspector.file
+
   return {
-    filePath: locator?.file || srcFile,
-    line: locator?.line || inspector.startLine,
-    column: locator?.column || inspector.startColumn,
+    filePath: locator?.file,
+    line: locator?.line,
+    column: locator?.column,
     selector,
     tag,
     classes,
     id,
     text,
-    attrs,
-    source: inspector
+    attrs
   }
 }
 
@@ -270,39 +268,6 @@ function collectElementAttrs(el: HTMLElement): { name: string; value: string }[]
     pairs.push({ name: n, value: v })
   }
   return pairs.slice(0, 12)
-}
-
-/**
- * 函数：解析预览注入的定位元数据
- */
-function parseInspectorMeta(el: HTMLElement): { file?: string; startLine?: number; startColumn?: number; endLine?: number; endColumn?: number } {
-  const file = el.getAttribute('trae-inspector-file-path') || undefined
-  const sl = Number(el.getAttribute('trae-inspector-start-line') || '')
-  const sc = Number(el.getAttribute('trae-inspector-start-column') || '')
-  const eln = Number(el.getAttribute('trae-inspector-end-line') || '')
-  const ec = Number(el.getAttribute('trae-inspector-end-column') || '')
-  const obj: { file?: string; startLine?: number; startColumn?: number; endLine?: number; endColumn?: number } = {}
-  if (file) obj.file = file.replace(/\\/g, '/').replace(/^\//, '')
-  if (sl > 0) obj.startLine = sl
-  if (sc > 0) obj.startColumn = sc
-  if (eln > 0) obj.endLine = eln
-  if (ec > 0) obj.endColumn = ec
-  const sp = el.getAttribute('trae-inspector-static-props') || ''
-  if (sp) {
-    try {
-      const decoded = decodeURIComponent(sp)
-      const meta = JSON.parse(decoded || '{}')
-      const tsl = Number(meta?.textStartLine || '')
-      const tsc = Number(meta?.textStartColumn || '')
-      const tel = Number(meta?.textEndLine || '')
-      const tec = Number(meta?.textEndColumn || '')
-      if (tsl > 0) obj.startLine = tsl
-      if (tsc > 0) obj.startColumn = tsc
-      if (tel > 0) obj.endLine = tel
-      if (tec > 0) obj.endColumn = tec
-    } catch {}
-  }
-  return obj
 }
 
 /**

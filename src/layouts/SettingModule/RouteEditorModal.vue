@@ -7,7 +7,7 @@
   - 支持打开视图资源面板弹窗选择并回填组件路径
 -->
 <template>
-  <EditorModal :visible="visible" :title="headerTitle" :widthVw="50" :zIndex="102"
+  <EditorModal :visible="visible" :title="headerTitle" :widthVw="75" :zIndex="102"
     @update:visible="v => { if (!v) onClose() }" @cancel="onClose" @ok="onSave">
     <div class="p-0">
       <div class="grid grid-cols-1 md:grid-cols-5 gap-6">

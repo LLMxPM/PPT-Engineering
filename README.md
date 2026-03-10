@@ -37,7 +37,7 @@
 1. 环境准备
    - Node.js ≥ 18
    - 强力推荐使用 pnpm 作为前端包管理工具
-   - clone项目：`git clone https://github.com/yourusername/ppt-engineering.git`
+   - clone项目：`git clone https://github.com/llmxpm/ppt-engineering.git`
 2. 安装依赖
    - 运行：`pnpm install`
 3. 本地开发

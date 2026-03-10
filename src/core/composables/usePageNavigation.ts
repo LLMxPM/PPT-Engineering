@@ -7,7 +7,7 @@
 
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
+import {
   getPageNumberByPath,
   getRouteInfoByPageNumber,
   getPreviousPageRouteInfo,
@@ -72,7 +72,7 @@ export function usePageNavigation() {
   const goToPreviousPage = async (): Promise<void> => {
     if (previousPage.value) {
       try {
-        console.log('导航到上一页', previousPage.value.path)
+        // console.log('导航到上一页', previousPage.value.path)
         await router.push(previousPage.value.path)
       } catch (error) {
         console.error('导航到上一页失败', error)
@@ -89,7 +89,7 @@ export function usePageNavigation() {
   const goToNextPage = async (): Promise<void> => {
     if (nextPage.value) {
       try {
-        console.log('导航到下一页', nextPage.value.path)
+        // console.log('导航到下一页', nextPage.value.path)
         await router.push(nextPage.value.path)
       } catch (error) {
         console.error('导航到下一页失败', error)
@@ -139,7 +139,7 @@ export function usePageNavigation() {
     nextPage,
     canGoPrevious,
     canGoNext,
-    
+
     // 方法
     goToPreviousPage,
     goToNextPage,

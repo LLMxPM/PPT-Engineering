@@ -1,15 +1,8 @@
 <template>
-  <div 
-    class="mermaid-viewer"
-    :style="containerStyle"
-    :class="{ 'cursor-zoom-in group': previewEnabled }"
-    @click="handleViewerClick"
-  >
+  <div class="mermaid-viewer" :style="containerStyle" :class="{ 'cursor-zoom-in group': previewEnabled }"
+    @click="handleViewerClick">
     <!-- 加载状态 -->
-    <div 
-      v-if="loading" 
-      class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10"
-    >
+    <div v-if="loading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
       <div class="flex items-center space-x-2 text-gray-600">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
         <span>正在渲染图表...</span>
@@ -17,10 +10,7 @@
     </div>
 
     <!-- 错误状态 -->
-    <div 
-      v-if="error" 
-      class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10"
-    >
+    <div v-if="error" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
       <div class="text-center text-red-600">
         <div class="text-lg font-semibold mb-2">渲染失败</div>
         <div class="text-sm">{{ error }}</div>
@@ -28,43 +18,26 @@
     </div>
 
     <!-- 图表容器 - 始终存在 -->
-    <div 
-      ref="diagramContainer"
-      class="mermaid-diagram-container"
-      :style="diagramStyle"
-      :class="{ 'border border-gray-300 rounded': showBorder }"
-    ></div>
+    <div ref="diagramContainer" class="mermaid-diagram-container" :style="diagramStyle"
+      :class="{ 'border border-gray-300 rounded': showBorder }"></div>
   </div>
 
   <!-- 全屏预览弹层（覆盖整个浏览器窗口） -->
   <teleport to="body">
-    <div
-      v-if="isPreviewOpen"
-      class="fixed inset-0 bg-black bg-opacity-70 z-[9999] flex items-center justify-center"
-      @click.self="closePreview"
-    >
+    <div v-if="isPreviewOpen" class="fixed inset-0 bg-black bg-opacity-70 z-[9999] flex items-center justify-center"
+      @click.self="closePreview">
       <!-- Container for diagram and controls, centered by flexbox parent -->
-      <div
-        class="relative cursor-zoom-out"
-        :style="{ width: previewWidth, height: previewHeight }"
-      >
+      <div class="relative cursor-zoom-out" :style="{ width: previewWidth, height: previewHeight }">
         <!-- Controls -->
         <div class="absolute top-4 right-4 z-50 flex space-x-2">
-          <button
-            @click="downloadPreviewSVG"
-            class="bg-gray-800/60 hover:bg-gray-900/70 text-white rounded px-3 py-1 shadow-lg transition-colors"
-          >下载图片</button>
-          <button
-            @click="closePreview"
-            class="bg-gray-800/60 hover:bg-gray-900/70 text-white rounded px-3 py-1 shadow-lg transition-colors"
-          >关闭</button>
+          <button @click="downloadPreviewSVG"
+            class="bg-gray-800/60 hover:bg-gray-900/70 text-white rounded px-3 py-1 shadow-lg transition-colors">下载图片</button>
+          <button @click="closePreview"
+            class="bg-gray-800/60 hover:bg-gray-900/70 text-white rounded px-3 py-1 shadow-lg transition-colors">关闭</button>
         </div>
         <!-- Diagram -->
-        <div
-          ref="previewContainer"
-          class="mermaid-diagram-container w-full h-full"
-          :style="{ backgroundColor: themeBackground }"
-        ></div>
+        <div ref="previewContainer" class="mermaid-diagram-container w-full h-full"
+          :style="{ backgroundColor: themeBackground }"></div>
       </div>
     </div>
   </teleport>
@@ -276,7 +249,7 @@ const renderDiagram = async (content: string) => {
   try {
     // 等待DOM准备
     await nextTick()
-    
+
     // 确保容器元素存在
     if (!diagramContainer.value) {
       // 等待容器元素挂载
@@ -297,13 +270,13 @@ const renderDiagram = async (content: string) => {
 
     // 初始化Mermaid
     const mermaid = await initMermaid()
-    
+
     // 生成唯一ID
     mermaidId.value = generateId()
 
     // 渲染图表（不进行失败重试）
     const { svg } = await mermaid.render(mermaidId.value, content.trim())
-    
+
     if (!svg) {
       throw new Error('渲染结果为空')
     }
@@ -340,7 +313,7 @@ const addInteractivity = (container?: HTMLElement | null) => {
   // 动态导入svg-pan-zoom库
   import('svg-pan-zoom').then((svgPanZoomModule) => {
     const svgPanZoom = svgPanZoomModule.default || svgPanZoomModule
-    
+
     // 确保svgPanZoom是一个函数
     if (typeof svgPanZoom !== 'function') {
       console.error('svg-pan-zoom is not a function')
@@ -361,26 +334,26 @@ const addInteractivity = (container?: HTMLElement | null) => {
       dblClickZoomEnabled: true,
       mouseWheelZoomEnabled: true,
       preventMouseEventsDefault: true,
-      beforeZoom: function(oldScale, newScale) {
+      beforeZoom: function (oldScale, newScale) {
         // 可以在这里添加缩放前的逻辑
         return true
       },
-      onZoom: function(newScale) {
+      onZoom: function (newScale) {
         // 缩放时的回调
         console.log('Zoom level:', newScale)
       },
-      beforePan: function(oldPan, newPan) {
+      beforePan: function (oldPan, newPan) {
         // 配合contain: false，实现真正的无限制平移
         return newPan
       },
-      onPan: function(newPan) {
+      onPan: function (newPan) {
         // 平移时的回调
         console.log('Pan position:', newPan)
       }
     })
 
-    // 将实例保存到组件中，以便后续操作
-    ;(svg as any).__panZoomInstance = panZoomInstance
+      // 将实例保存到组件中，以便后续操作
+      ; (svg as any).__panZoomInstance = panZoomInstance
 
     // 添加键盘快捷键支持
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -413,13 +386,13 @@ const addInteractivity = (container?: HTMLElement | null) => {
     // 添加键盘事件监听
     document.addEventListener('keydown', handleKeyDown)
 
-    // 保存清理函数
-    ;(svg as any).__cleanupPanZoom = () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      if (panZoomInstance && typeof panZoomInstance.destroy === 'function') {
-        panZoomInstance.destroy()
+      // 保存清理函数
+      ; (svg as any).__cleanupPanZoom = () => {
+        document.removeEventListener('keydown', handleKeyDown)
+        if (panZoomInstance && typeof panZoomInstance.destroy === 'function') {
+          panZoomInstance.destroy()
+        }
       }
-    }
 
   }).catch((error) => {
     console.error('Failed to load svg-pan-zoom:', error)
@@ -454,15 +427,15 @@ const clear = () => {
     // 清理svg-pan-zoom实例
     const svg = diagramContainer.value.querySelector('svg')
     if (svg && (svg as any).__cleanupPanZoom) {
-      ;(svg as any).__cleanupPanZoom()
+      ; (svg as any).__cleanupPanZoom()
     }
-    
+
     diagramContainer.value.innerHTML = ''
   }
   if (previewContainer.value) {
     const svg = previewContainer.value.querySelector('svg')
     if (svg && (svg as any).__cleanupPanZoom) {
-      ;(svg as any).__cleanupPanZoom()
+      ; (svg as any).__cleanupPanZoom()
     }
     previewContainer.value.innerHTML = ''
   }
@@ -482,7 +455,7 @@ const updateContent = async (newContent: string) => {
  */
 const exportSVG = (): string | null => {
   if (!diagramContainer.value) return null
-  
+
   const svg = diagramContainer.value.querySelector('svg')
   return svg ? svg.outerHTML : null
 }
@@ -522,7 +495,7 @@ const openPreview = async () => {
 
       // 关键：先让SVG自适应容器，获得正确的viewBox和初始尺寸
       fitSvgToContainer(previewContainer.value)
-      
+
       // 然后再启用交互
       addInteractivity(previewContainer.value)
     } catch (err) {
@@ -537,7 +510,7 @@ const openPreview = async () => {
     }
   }
   document.addEventListener('keydown', escHandler)
-  ;(previewContainer as any)._escHandler = escHandler
+    ; (previewContainer as any)._escHandler = escHandler
 }
 
 /**
@@ -551,10 +524,10 @@ const downloadPreviewSVG = () => {
 
   // 序列化SVG内容
   const svgData = new XMLSerializer().serializeToString(svg)
-  
+
   // 创建Blob对象
   const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-  
+
   // 创建下载链接
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -562,7 +535,7 @@ const downloadPreviewSVG = () => {
   a.download = `${mermaidId.value || 'mermaid-diagram'}.svg` // 使用图表ID或默认名
   document.body.appendChild(a)
   a.click()
-  
+
   // 清理
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
@@ -577,7 +550,7 @@ const closePreview = () => {
   if (previewContainer.value) {
     const svg = previewContainer.value.querySelector('svg')
     if (svg && (svg as any).__cleanupPanZoom) {
-      ;(svg as any).__cleanupPanZoom()
+      ; (svg as any).__cleanupPanZoom()
     }
     previewContainer.value.innerHTML = ''
   }
@@ -585,7 +558,7 @@ const closePreview = () => {
   const escHandler = (previewContainer as any)._escHandler
   if (escHandler) {
     document.removeEventListener('keydown', escHandler)
-    ;(previewContainer as any)._escHandler = null
+      ; (previewContainer as any)._escHandler = null
   }
 }
 
@@ -617,7 +590,7 @@ onMounted(() => {
   reload()
   // 监听尺寸变化，保持主视图自适应
   const handleResize = () => fitSvgToContainer(diagramContainer.value)
-  ;(window as any).__mermaidViewerResizeHandler = handleResize
+    ; (window as any).__mermaidViewerResizeHandler = handleResize
   window.addEventListener('resize', handleResize)
   if (diagramContainer.value) {
     resizeObserver = new ResizeObserver(() => fitSvgToContainer(diagramContainer.value))
@@ -632,7 +605,7 @@ onBeforeUnmount(() => {
   const handleResize = (window as any).__mermaidViewerResizeHandler
   if (handleResize) {
     window.removeEventListener('resize', handleResize)
-    ;(window as any).__mermaidViewerResizeHandler = null
+      ; (window as any).__mermaidViewerResizeHandler = null
   }
   if (resizeObserver) {
     resizeObserver.disconnect()

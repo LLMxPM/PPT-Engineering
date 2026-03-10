@@ -8,15 +8,8 @@
 -->
 
 <template>
-  <EditorModal
-    v-model:visible="visibleState"
-    title="资源管理"
-    :widthVw="80"
-    :heightVh="90"
-    :zIndex="102"
-    :showFooter="false"
-    @cancel="onCancel"
-  >
+  <EditorModal v-model:visible="visibleState" title="资源管理" :widthVw="80" :heightVh="90" :zIndex="102"
+    :showFooter="false" @cancel="onCancel">
     <div class="pt-0">
       <div class="flex gap-2 ">
         <button :class="tabButtonClass('icon')" @click="activeTab = 'icon'">本地图标</button>
@@ -34,17 +27,8 @@
       <FontResourcePanel v-else-if="activeTab === 'fonts'" />
       <ViewResourcePanel v-else @close="onCancel" />
     </div>
-    <ConfirmModal
-      v-model:visible="confirm.visible"
-      :title="confirm.title"
-      :message="confirm.message"
-      :zIndex="1020"
-      :widthVw="40"
-      cancel-text="取消"
-      ok-text="确定"
-      @ok="confirmOk"
-      @cancel="confirmCancel"
-    />
+    <ConfirmModal v-model:visible="confirm.visible" :title="confirm.title" :message="confirm.message" :zIndex="1020"
+      :widthVw="40" cancel-text="取消" ok-text="确定" @ok="confirmOk" @cancel="confirmCancel" />
   </EditorModal>
 </template>
 
@@ -83,7 +67,7 @@ function persistModalState(): void {
   try {
     const payload = { visible: !!visibleState.value, activeTab: activeTab.value }
     sessionStorage.setItem(HMR_RESTORE_KEY, JSON.stringify(payload))
-  } catch {}
+  } catch { }
 }
 function restoreModalStateIfNeeded(): void {
   try {
@@ -95,7 +79,7 @@ function restoreModalStateIfNeeded(): void {
       activeTab.value = data.activeTab || activeTab.value
       visibleState.value = true
     }
-  } catch {}
+  } catch { }
 }
 
 /** 切换标签按钮样式 */
@@ -376,14 +360,14 @@ onMounted(() => {
   const beforeUnload = () => persistModalState()
   window.addEventListener('beforeunload', beforeUnload)
   if ((import.meta as any).hot) {
-    ;(import.meta as any).hot.on?.('vite:beforeUpdate', persistModalState)
-    ;(import.meta as any).hot.on?.('vite:full-reload', persistModalState)
+    ; (import.meta as any).hot.on?.('vite:beforeUpdate', persistModalState)
+      ; (import.meta as any).hot.on?.('vite:full-reload', persistModalState)
   }
   onUnmounted(() => {
     window.removeEventListener('beforeunload', beforeUnload)
     if ((import.meta as any).hot) {
-      ;(import.meta as any).hot.off?.('vite:beforeUpdate', persistModalState)
-      ;(import.meta as any).hot.off?.('vite:full-reload', persistModalState)
+      ; (import.meta as any).hot.off?.('vite:beforeUpdate', persistModalState)
+        ; (import.meta as any).hot.off?.('vite:full-reload', persistModalState)
     }
   })
 })
@@ -403,8 +387,20 @@ function confirmCancel(): void { const cb = confirm.value.onCancel; confirm.valu
 </script>
 
 <style scoped>
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 </style>

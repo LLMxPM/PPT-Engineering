@@ -10,19 +10,12 @@
   <teleport to="body">
     <div class="fixed top-4 left-1/2 -translate-x-1/2 z-[var(--z-toast)] w-[420px] space-y-2">
       <transition-group name="toast-fade" tag="div">
-        <div
-          v-for="t in store.list"
-          :key="t.id"
-          class="flex items-start gap-2 rounded-lg border p-3 shadow-sm"
-          :class="toastClass(t.type)"
-        >
+        <div v-for="t in store.list" :key="t.id" class="flex items-start gap-2 rounded-lg border p-3 shadow-sm"
+          :class="toastClass(t.type)">
           <div class="flex-1 min-w-0">
             <p class="text-[12px] truncate" :class="textClass(t.type)">{{ t.message }}</p>
           </div>
-          <button
-            class="shrink-0 text-gray-500 hover:text-gray-700 transition-colors"
-            @click="removeToast(t.id)"
-          >
+          <button class="shrink-0 text-gray-500 hover:text-gray-700 transition-colors" @click="removeToast(t.id)">
             <X :size="16" />
           </button>
         </div>
@@ -81,6 +74,7 @@ function textClass(type: ToastType) {
 .toast-fade-leave-active {
   transition: all 0.2s ease-in-out;
 }
+
 .toast-fade-enter-from,
 .toast-fade-leave-to {
   opacity: 0;
